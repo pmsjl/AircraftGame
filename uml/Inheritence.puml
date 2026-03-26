@@ -1,8 +1,23 @@
 @startuml
 'https://plantuml.com/class-diagram
+title 飞机大战 - 类继承关系图
 
-abstract class AbstractFlyingObject
-{
+'========== 接口定义 ==========
+interface BombObserver {
+    + updateOnBomb():int
+}
+
+interface FreezeObserver {
+    + updateOnFreeze():boolean
+    + updateOnUnfreeze():void
+}
+
+interface ShootStrategy {
+    + Shoot(AbstractAircraft aircraft, int speedSet):List<BaseBullet>
+}
+
+'========== 抽象基类 ==========
+abstract class AbstractFlyingObject {
     # locationX:int
     # locationY:int
     # speedX:int
@@ -25,57 +40,145 @@ abstract class AbstractFlyingObject
     + notValid():boolean
     + vanish():void
 }
-abstract class AbstractAircraft
-{
-	# maxHp:int
+
+abstract class AbstractAircraft {
+    # maxHp:int
     # hp:int
+    # shootNum:int
+    # power:int
+    # direction:int
+    # shootStrategy:ShootStrategy
+    # score:int
+
     + AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
     + decreaseHp(int decrease):void
+    + increaseHp(int increase):void
     + getHp():int
     + {abstract} shoot():List<BaseBullet>
- }
+    + {abstract} createBullet(int x, int y, int speedX, int speedY, int power):BaseBullet
+    + dropProps():List<AbstractProp>
+}
 
-
+'========== 飞机类 ==========
 class HeroAircraft {
+    - {static} instance:HeroAircraft <<volatile>>
     - shootNum:int
     - power:int
     - direction:int
-    + HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+
+    - HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+    + {static} getInstance():HeroAircraft
     + forward():void
     + shoot():List<BaseBullet>
+    + createBullet(int x, int y, int speedX, int speedY, int power):BaseBullet
 }
-
-AbstractAircraft <|-- HeroAircraft
 
 class MobEnemy {
     + MobEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
     + forward():void
     + shoot():List<BaseBullet>
 }
-AbstractAircraft <|-- MobEnemy
 
-abstract class BaseBullet
-{
+class EliteEnemy {
+    + EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+    + forward():void
+    + shoot():List<BaseBullet>
+    + dropProps():List<AbstractProp>
+}
+
+class ElitePlusEnemy {
+    + ElitePlusEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+    + dropProps():List<AbstractProp>
+}
+
+class EliteProEnemy {
+    + EliteProEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+    + dropProps():List<AbstractProp>
+}
+
+class BossEnemy {
+    + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
+    + shoot():List<BaseBullet>
+    + dropProps():List<AbstractProp>
+}
+
+'========== 子弹类 ==========
+abstract class BaseBullet {
     - power:int
     + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
     + forward():void
-	+ getPower():int
+    + getPower():int
 }
 
 class HeroBullet {
-    + HeroBullet(int locationX, int locationY,
-     int speedX, int speedY, int power)
+    + HeroBullet(int locationX, int locationY, int speedX, int speedY, int power)
 }
 
 class EnemyBullet {
-    + EnemyBullet(int locationX, int locationY,
-     int speedX, int speedY, int power)
+    + EnemyBullet(int locationX, int locationY, int speedX, int speedY, int power)
 }
+
+'========== 道具类 ==========
+abstract class AbstractProp {
+    + AbstractProp(int locationX, int locationY, int speedX, int speedY)
+    + forward():void
+    + {abstract} effect(HeroAircraft heroAircraft):int
+}
+
+class BloodProp {
+    + BloodProp(int locationX, int locationY, int speedX, int speedY)
+    + effect(HeroAircraft heroAircraft):int
+}
+
+class BombProp {
+    + BombProp(int locationX, int locationY, int speedX, int speedY)
+    + effect(HeroAircraft heroAircraft):int
+}
+
+class BulletProp {
+    + BulletProp(int locationX, int locationY, int speedX, int speedY)
+    + effect(HeroAircraft heroAircraft):int
+}
+
+class BulletPlusProp {
+    + BulletPlusProp(int locationX, int locationY, int speedX, int speedY)
+    + effect(HeroAircraft heroAircraft):int
+}
+
+class FreezeProp {
+    + FreezeProp(int locationX, int locationY, int speedX, int speedY)
+    + effect(HeroAircraft heroAircraft):int
+}
+
+'========== 泛化关系（继承）- 带三角箭头的实线 ==========
+AbstractFlyingObject <|-- AbstractAircraft
+AbstractFlyingObject <|-- BaseBullet
+AbstractFlyingObject <|-- AbstractProp
+
+AbstractAircraft <|-- HeroAircraft
+AbstractAircraft <|-- MobEnemy
+AbstractAircraft <|-- EliteEnemy
+AbstractAircraft <|-- ElitePlusEnemy
+AbstractAircraft <|-- EliteProEnemy
+AbstractAircraft <|-- BossEnemy
 
 BaseBullet <|-- HeroBullet
 BaseBullet <|-- EnemyBullet
 
-AbstractFlyingObject <|-- AbstractAircraft
-AbstractFlyingObject <|-- BaseBullet
+AbstractProp <|-- BloodProp
+AbstractProp <|-- BombProp
+AbstractProp <|-- BulletProp
+AbstractProp <|-- BulletPlusProp
+AbstractProp <|-- FreezeProp
+
+'========== 实现关系 - 带三角箭头的虚线 ==========
+BombObserver <|.. AbstractAircraft
+FreezeObserver <|.. AbstractAircraft
+
+'========== 关联关系 - 带普通箭头的实心线 ==========
+AbstractAircraft --> ShootStrategy : shootStrategy
+
+'========== 依赖关系 - 带箭头的虚线 ==========
+AbstractProp ..> HeroAircraft : <<use>> effect()
 
 @enduml
