@@ -16,11 +16,14 @@ public class BloodProp extends AbstractProp {
 
     /**
      * 道具触发效果：给英雄机加血
+     *
      * @param heroAircraft 英雄机实例
+     * @return
      */
-    public void effect(HeroAircraft heroAircraft) {
+    public int effect(HeroAircraft heroAircraft) {
 
         heroAircraft.increaseHp(healthAmount);
         System.out.println("吃到加血道具，血量增加 " + healthAmount);
+        return 0;
     }
 }

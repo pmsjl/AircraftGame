@@ -53,8 +53,12 @@ public class Game extends JPanel {
 
 
     //道具生效周期
-    protected double propsCycle=100;
-    private int propsCounter=0;
+    //不同道具分开来计时
+    //两个弹药相关的生效时长控制
+    protected double fireCycle=100;
+    private boolean fireIsActive=false;
+    private int fireCounter=0;
+
 
     //游戏结束标志
     private boolean gameOverFlag = false;
@@ -111,6 +115,7 @@ public class Game extends JPanel {
                 propsMoveAction();
                 // 撞击检测
                 crashCheckAction();
+                updatePropAction();
                 // 后处理
                 postProcessAction();
                 // 重绘界面
@@ -122,6 +127,17 @@ public class Game extends JPanel {
         // 以固定延迟时间进行执行：本次任务执行完成后，延迟 timeInterval 再执行下一次
         timer.schedule(task, 0, timeInterval);
 
+    }
+
+    //道具是否生效的判断，只有接触到道具后才会开始计时，时间到达后就会进行归位
+    private void updatePropAction() {
+        if(fireIsActive){
+            fireCounter++;
+            if(fireCounter>=fireCycle){
+                fireCounter=0;
+                heroAircraft.setShootNum(3);
+            }
+        }
     }
 
 
@@ -247,7 +263,11 @@ public class Game extends JPanel {
                 continue;
             }
             if (heroAircraft.crash(prop)) {
-                prop.effect(heroAircraft);
+                int buffType = prop.effect(heroAircraft);
+                if(buffType==1||buffType==2){
+                    fireCounter=0;
+                    fireIsActive=true;
+                }
                 prop.vanish();
             }
         }
