@@ -11,7 +11,7 @@ public class BombProp extends AbstractProp{
     }
 
     @Override
-    public void effect(HeroAircraft heroAircraft) {
-
+    public int effect(HeroAircraft heroAircraft) {
+        return 0;
     }
 }

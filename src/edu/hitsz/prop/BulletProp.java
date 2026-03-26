@@ -11,8 +11,9 @@ public class BulletProp extends AbstractProp {
     }
 
     @Override
-    public void effect(HeroAircraft heroAircraft) {
+    public int effect(HeroAircraft heroAircraft) {
         int num = heroAircraft.getShootNum();
         heroAircraft.setShootNum(num + 2);
+        return 1;
     }
 }

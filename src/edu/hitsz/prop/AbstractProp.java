@@ -20,5 +20,5 @@ public abstract class AbstractProp extends AbstractFlyingObject {
             vanish();
         }
     }
-    public abstract void effect(HeroAircraft heroAircraft);
+    public abstract int effect(HeroAircraft heroAircraft);
 }
