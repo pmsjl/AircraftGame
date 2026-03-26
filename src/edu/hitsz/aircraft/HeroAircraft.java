@@ -5,10 +5,7 @@ import edu.hitsz.bullet.HeroBullet;
 import edu.hitsz.application.ImageManager;
 import edu.hitsz.application.Main;
 import edu.hitsz.strategy.NormalShootStrategy;
-import edu.hitsz.strategy.NullShootStrategy;
-import edu.hitsz.strategy.ShootStrategy;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -27,7 +24,7 @@ public class HeroAircraft extends AbstractAircraft {
         // 父类已有对应值无需重新定义直接赋值即可
         this.shootNum = 3;
         this.direction = -1;
-        this.power = 30;
+        this.power = 10;
         this.setShootStrategy(new NormalShootStrategy());
     }
 
@@ -47,7 +44,7 @@ public class HeroAircraft extends AbstractAircraft {
                             Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight(),
                             0,
                             0,
-                            100
+                            1000
                     );
                 }
             }
@@ -66,8 +63,22 @@ public class HeroAircraft extends AbstractAircraft {
      * @return 射击出的子弹List
      */
     public List<BaseBullet> shoot() {
-        return shootStrategy.Shoot(this,50);
+        return shootStrategy.Shoot(this,10);
+    }
+
+    @Override
+    public void updateOnUnfreeze() {
+
     }
 
 
+    @Override
+    public int updateOnBomb() {
+        return 0;
+    }
+
+    @Override
+    public boolean updateOnFreeze() {
+        return false;
+    }
 }

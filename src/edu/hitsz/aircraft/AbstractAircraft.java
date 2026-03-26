@@ -2,6 +2,8 @@ package edu.hitsz.aircraft;
 
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
+import edu.hitsz.observer.BombObserver;
+import edu.hitsz.observer.FreezeObserver;
 import edu.hitsz.prop.AbstractProp;
 import edu.hitsz.strategy.ShootStrategy;
 
@@ -13,8 +15,10 @@ import java.util.List;
  *
  * @author hitsz
  */
-public abstract class AbstractAircraft extends AbstractFlyingObject {
-
+public abstract class AbstractAircraft extends AbstractFlyingObject implements BombObserver, FreezeObserver {
+    // 【新增】记录初始速度，用于冰冻后的恢复
+    protected int originalSpeedX;
+    protected int originalSpeedY;
     //最大生命值
     protected int maxHp;
     protected int hp;
@@ -102,6 +106,9 @@ public abstract class AbstractAircraft extends AbstractFlyingObject {
     public List<AbstractProp> dropProps() {
         return new LinkedList<>(); // 默认返回一个空的列表
     }
+
+    // 【观察者模式】增加解除冰冻的接头暗号
+    public abstract void updateOnUnfreeze();
 }
 
 

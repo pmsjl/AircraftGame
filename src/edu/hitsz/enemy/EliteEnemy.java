@@ -4,7 +4,6 @@ import edu.hitsz.aircraft.AbstractAircraft;
 import edu.hitsz.application.Main;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.bullet.EnemyBullet;
-import edu.hitsz.bullet.HeroBullet;
 import edu.hitsz.factory.PropFactory;
 import edu.hitsz.prop.AbstractProp;
 import edu.hitsz.strategy.NormalShootStrategy;
@@ -18,13 +17,6 @@ import java.util.List;
 
 public class EliteEnemy extends AbstractAircraft {
 
-    // 每次射击发射子弹数量
-    private int shootNum = 1;
-    // 子弹威力
-    private int power = 15;
-    // 子弹射击方向 (向上发射：-1，向下发射：1)
-    private int direction = 2;
-
     public EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
         this.score = 20;
@@ -32,6 +24,8 @@ public class EliteEnemy extends AbstractAircraft {
         this.power = 15;
         this.direction = 1;
         this.shootStrategy = new NormalShootStrategy();
+        this.originalSpeedX=speedX;
+        this.originalSpeedY=speedY;
     }
 
     @Override
@@ -60,26 +54,46 @@ public class EliteEnemy extends AbstractAircraft {
 
         List<AbstractProp> res = new LinkedList<>();
         double num = Math.random();
-        if (num < 0.3) {
+        if (num < 0.2) {
             // 用工厂造一个加血道具，位置就在当前精英机爆炸的地方
             AbstractProp blood = PropFactory.createProp("Blood", this.getLocationX(), this.getLocationY());
             if (blood != null) {
                 res.add(blood);
                 System.out.println("精英机掉落了加血道具！");
             }
-        } else if (num > 0.6) {
+        } else if (num > 0.8) {
             AbstractProp bullet = PropFactory.createProp("Fire", this.getLocationX(), this.getLocationY());
             if (bullet != null) {
                 res.add(bullet);
                 System.out.println("精英机掉落了弹药道具！");
             }
-        } else {
-            AbstractProp bulletplus = PropFactory.createProp("SuperFire", this.getLocationX(), this.getLocationY());
-            if (bulletplus != null) {
-                res.add(bulletplus);
-                System.out.println("精英机掉落了超级弹药道具！");
+        }else{
+            AbstractProp freeze = PropFactory.createProp("Freeze", this.getLocationX(), this.getLocationY());
+            if (freeze != null) {
+                res.add(freeze);
+                System.out.println("精英机掉落了冰冻道具！");
             }
         }
         return res;
+    }
+
+    @Override
+    public void updateOnUnfreeze() {
+        this.speedX=this.originalSpeedX;
+        this.speedY=this.originalSpeedY;
+
+    }
+
+    @Override
+    public int updateOnBomb() {
+        this.vanish();
+        return this.score;
+    }
+
+    @Override
+    public boolean updateOnFreeze() {
+        this.speedY=0;
+        this.speedX=0;
+        return true;
     }
 }

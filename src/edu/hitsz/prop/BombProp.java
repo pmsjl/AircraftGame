@@ -12,6 +12,7 @@ public class BombProp extends AbstractProp{
 
     @Override
     public int effect(HeroAircraft heroAircraft) {
-        return 0;
+        System.out.println("炸弹引爆");
+        return 4;
     }
 }

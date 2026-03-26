@@ -3,11 +3,9 @@ package edu.hitsz.application;
 import edu.hitsz.aircraft.*;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
+import edu.hitsz.enemy.BossEnemy;
 import edu.hitsz.enemy.MobEnemy;
-import edu.hitsz.factory.EliteEnemyFactory;
-import edu.hitsz.factory.EnemyFactory;
-import edu.hitsz.factory.MobEnemyFactory;
-import edu.hitsz.factory.PropFactory;
+import edu.hitsz.factory.*;
 import edu.hitsz.prop.AbstractProp;
 
 import javax.swing.*;
@@ -55,9 +53,14 @@ public class Game extends JPanel {
     //道具生效周期
     //不同道具分开来计时
     //两个弹药相关的生效时长控制
-    protected double fireCycle=100;
-    private boolean fireIsActive=false;
-    private int fireCounter=0;
+    protected double fireCycle = 50;
+    private boolean fireIsActive = false;
+    private int fireCounter = 0;
+
+    //冰冻生效时长控制
+    protected double freezeCycle = 50;
+    private boolean freezeIsActive = false;
+    private int freezeCounter = 0;
 
 
     //游戏结束标志
@@ -70,16 +73,23 @@ public class Game extends JPanel {
     // --- 工厂实例 ---
     private final EnemyFactory mobEnemyFactory = new MobEnemyFactory();
     private final EnemyFactory eliteEnemyFactory = new EliteEnemyFactory();
+    private final EnemyFactory elitePlusEnemyFactory = new ElitePlusEnemyFactory();
+    private final EnemyFactory eliteProEnemyFactory = new EliteProEnemyFactory();
+    private final EnemyFactory bossEnemyFactory = new BossEnemyFactory();
 
 
+    //boss机出现的处理方式
+    // 下一次产生 Boss 的分数阈值（比如 500 分出第一个，1000 分出第二个）
+    private int bossThreshold = 500;
 
+    private boolean bossActive = false;
 
     public Game() {
         heroAircraft = HeroAircraft.getInstance();
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
         enemyBullets = new LinkedList<>();
-        props=new LinkedList<>();
+        props = new LinkedList<>();
 
         //启动英雄机鼠标监听
         new HeroController(this, heroAircraft);
@@ -115,6 +125,7 @@ public class Game extends JPanel {
                 propsMoveAction();
                 // 撞击检测
                 crashCheckAction();
+                // 道具时效判断
                 updatePropAction();
                 // 后处理
                 postProcessAction();
@@ -131,11 +142,22 @@ public class Game extends JPanel {
 
     //道具是否生效的判断，只有接触到道具后才会开始计时，时间到达后就会进行归位
     private void updatePropAction() {
-        if(fireIsActive){
+        if (fireIsActive) {
             fireCounter++;
-            if(fireCounter>=fireCycle){
-                fireCounter=0;
+            if (fireCounter >= fireCycle) {
+                fireCounter = 0;
                 heroAircraft.setShootNum(3);
+                fireIsActive = false;
+            }
+        }
+        if (freezeIsActive) {
+            freezeCounter++;
+            if (freezeCounter >= freezeCycle) {
+                freezeCounter = 0;
+                for (AbstractAircraft enemyAircraft : enemyAircrafts) {
+                    enemyAircraft.updateOnUnfreeze();
+                }
+
             }
         }
     }
@@ -146,14 +168,17 @@ public class Game extends JPanel {
             double rand = Math.random();
             AbstractAircraft newEnemy;
 
-            if (rand < 0.4) {
+            if (rand < 0.25) {
                 // 20% 概率产生精英机
                 newEnemy = eliteEnemyFactory.createEnemy();
+            } else if (rand > 0.85) {
+                newEnemy = elitePlusEnemyFactory.createEnemy();
+            } else if (rand <= 0.85 && rand >= 0.75) {
+                newEnemy = eliteProEnemyFactory.createEnemy();
             } else {
-                // 80% 概率产生普通机
+                // 50% 概率产生普通机
                 newEnemy = mobEnemyFactory.createEnemy();
             }
-
             // 将工厂生产好的敌机加入队列
             enemyAircrafts.add(newEnemy);
         }
@@ -198,6 +223,7 @@ public class Game extends JPanel {
             enemyAircraft.forward();
         }
     }
+
     private void propsMoveAction() {
         for (AbstractProp prop : props) {
             prop.forward();
@@ -245,8 +271,13 @@ public class Game extends JPanel {
                     bullet.vanish();
                     if (enemyAircraft.notValid()) {
                         // TODO 获得分数，产生道具补给
+                        if (enemyAircraft instanceof BossEnemy) {
+                            bossActive = false;
+                            System.out.println("Boss 被击毁！世界暂时和平。");
+                        }
                         score += enemyAircraft.getScore();
                         props.addAll(enemyAircraft.dropProps());
+
                     }
                 }
                 // 英雄机 与 敌机 相撞，均损毁
@@ -259,20 +290,57 @@ public class Game extends JPanel {
 
         // Todo: 我方获得道具，道具生效
         for (AbstractProp prop : props) {
-            if(prop.notValid()){
+            if (prop.notValid()) {
                 continue;
             }
             if (heroAircraft.crash(prop)) {
                 int buffType = prop.effect(heroAircraft);
-                if(buffType==1||buffType==2){
-                    fireCounter=0;
-                    fireIsActive=true;
+                if (buffType == 1 || buffType == 2) {
+                    fireCounter = 0;
+                    fireIsActive = true;
+                } else if (buffType == 3) {
+                    FreezeUpdate();
+                } else if (buffType == 4) {
+                    BombUpdate();
                 }
+
                 prop.vanish();
             }
         }
 
+        //对于boss机的出现与否进行判断
+        if (score >= bossThreshold && !bossActive) {
 
+            // 标志位置为 true，说明 Boss 降临了，锁住！
+            bossActive = true;
+
+            // 产生 Boss 机（假设你已经写好了 BossEnemyFactory）
+            enemyAircrafts.add(bossEnemyFactory.createEnemy());
+
+            System.out.println("警告！分数达到 " + bossThreshold + "，Boss 机降临！");
+
+            // 把下一次触发 Boss 的阈值提高
+
+            bossThreshold += 3000;
+        }
+
+
+    }
+
+    private void FreezeUpdate() {
+        for (AbstractAircraft enemyAircraft : enemyAircrafts) {
+            if (enemyAircraft.updateOnFreeze()) {
+                freezeIsActive = true;
+                freezeCounter = 0;
+            }
+        }
+    }
+
+    private void BombUpdate() {
+        for (AbstractAircraft enemyAircraft : enemyAircrafts) {
+            score += enemyAircraft.updateOnBomb();
+        }
+        enemyBullets.clear();
     }
 
     /**

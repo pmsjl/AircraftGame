@@ -45,4 +45,20 @@ public class MobEnemy extends AbstractAircraft {
         return shootStrategy.Shoot(this,0);
     }
 
+    @Override
+    public void updateOnUnfreeze() {
+
+    }
+
+    @Override
+    public int updateOnBomb() {
+        this.vanish();
+        return this.score;
+    }
+
+    @Override
+    public boolean updateOnFreeze() {
+        this.speedY=0;
+        return false;
+    }
 }
