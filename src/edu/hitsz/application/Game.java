@@ -3,10 +3,13 @@ package edu.hitsz.application;
 import edu.hitsz.aircraft.*;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
+import edu.hitsz.dao.RecordDao;
+import edu.hitsz.dao.RecordDaoImpl;
 import edu.hitsz.enemy.BossEnemy;
 import edu.hitsz.enemy.MobEnemy;
 import edu.hitsz.factory.*;
 import edu.hitsz.prop.AbstractProp;
+import edu.hitsz.record.PlayerRecord;
 import edu.hitsz.utils.MusicThread;
 
 import javax.swing.*;
@@ -39,7 +42,7 @@ public class Game extends JPanel {
     private final int enemyMaxNumber = 10;
 
     //敌机生成周期
-    protected double enemySpawnCycle = 8;
+    protected double enemySpawnCycle;
     private int enemySpawnCounter = 0;
 
     //英雄机和敌机射击周期
@@ -80,7 +83,17 @@ public class Game extends JPanel {
 
     private boolean bossActive = false;
 
-    public Game() {
+
+    private final Difficulty difficulty;
+    public Game(Difficulty difficulty) {
+        this.difficulty = difficulty;
+
+        // 【核心】根据难度，动态调整游戏参数
+        // 例如：难度越高，乘数越大，周期越短，敌机出得越快！
+        // 简单(1.0) = 8帧出一个; 普通(1.5) ≈ 5帧出一个; 困难(2.0) = 4帧出一个
+        this.enemySpawnCycle = 12 / difficulty.getScoreMultiplier();
+        // 你也可以在这里调整 bossThreshold 比如困难模式 300分就出 Boss
+
         heroAircraft = HeroAircraft.getInstance();
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
@@ -358,6 +371,31 @@ public class Game extends JPanel {
             gameOverFlag = true;
             new MusicThread("src/videos/game_over.wav", false).start();
             System.out.println("Game Over!");
+            String playerName = JOptionPane.showInputDialog(
+                    this,
+                    "游戏结束！\n你的得分为: " + score + "\n请输入玩家名字以记录成绩:",
+                    "结算",
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            // 2. 检查玩家是否输入了名字（如果点了取消，playerName 会是 null）
+            if (playerName != null && !playerName.trim().isEmpty()) {
+                // 【DAO 接入】获取当前时间的格式化字符串
+                String currentTime = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MM-dd HH:mm"));
+
+                // 封装成一个实体类
+                PlayerRecord newRecord = new PlayerRecord(playerName, score, this.difficulty, currentTime);
+
+                RecordDao recordDao = new RecordDaoImpl();
+                recordDao.addRecord(newRecord);
+
+                System.out.println("玩家记录已保存至本地文件！");
+            }
+            //显现排行榜
+            ScoreBoard scoreBoard = new ScoreBoard(this.difficulty);
+            Main.cardPanel.add(scoreBoard, "score");
+
+            Main.cardLayout.show(Main.cardPanel, "score");
         }
     }
 
