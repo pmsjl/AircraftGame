@@ -173,7 +173,7 @@ public class Game extends JPanel {
                 newEnemy = eliteEnemyFactory.createEnemy();
             } else if (rand > 0.85) {
                 newEnemy = elitePlusEnemyFactory.createEnemy();
-            } else if (rand <= 0.85 && rand >= 0.75) {
+            } else if (rand <= 0.85 && rand >= 0.35) {
                 newEnemy = eliteProEnemyFactory.createEnemy();
             } else {
                 // 50% 概率产生普通机
