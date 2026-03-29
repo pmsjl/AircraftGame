@@ -1,6 +1,7 @@
 package edu.hitsz.prop;
 
 import edu.hitsz.aircraft.HeroAircraft;
+import edu.hitsz.utils.MusicThread;
 
 /**
  * 超级火力道具
@@ -20,7 +21,9 @@ public class BulletPlusProp extends AbstractProp {
         }
         System.out.println("吃到超级火力道具，火力增强！");
         // 1. 生效：增加子弹数量
+
         heroAircraft.setShootNum(heroAircraft.getShootNum() * 2);
+        new MusicThread("src/videos/get_supply.wav", false).start();
 
         // 【核心修改】：开启一个专门的后台线程来控制火力恢复
         new Thread(() -> {
