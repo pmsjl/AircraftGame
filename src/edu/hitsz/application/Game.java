@@ -51,11 +51,6 @@ public class Game extends JPanel {
 
 
     //道具生效周期
-    //不同道具分开来计时
-    //两个弹药相关的生效时长控制
-    protected double fireCycle = 50;
-    private boolean fireIsActive = false;
-    private int fireCounter = 0;
 
     //冰冻生效时长控制
     protected double freezeCycle = 50;
@@ -142,14 +137,6 @@ public class Game extends JPanel {
 
     //道具是否生效的判断，只有接触到道具后才会开始计时，时间到达后就会进行归位
     private void updatePropAction() {
-        if (fireIsActive) {
-            fireCounter++;
-            if (fireCounter >= fireCycle) {
-                fireCounter = 0;
-                heroAircraft.setShootNum(3);
-                fireIsActive = false;
-            }
-        }
         if (freezeIsActive) {
             freezeCounter++;
             if (freezeCounter >= freezeCycle) {
@@ -295,10 +282,7 @@ public class Game extends JPanel {
             }
             if (heroAircraft.crash(prop)) {
                 int buffType = prop.effect(heroAircraft);
-                if (buffType == 1 || buffType == 2) {
-                    fireCounter = 0;
-                    fireIsActive = true;
-                } else if (buffType == 3) {
+                if (buffType == 3) {
                     FreezeUpdate();
                 } else if (buffType == 4) {
                     BombUpdate();
