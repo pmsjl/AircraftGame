@@ -19,6 +19,14 @@ public abstract class AbstractAircraft extends AbstractFlyingObject implements B
     // 【新增】记录初始速度，用于冰冻后的恢复
     protected int originalSpeedX;
     protected int originalSpeedY;
+
+    //初始子弹数，用于子弹道具调用
+    protected int originalShootNum=1;
+
+    public int getOriginalShootNum() {
+        return originalShootNum;
+    }
+
     //最大生命值
     protected int maxHp;
     protected int hp;
