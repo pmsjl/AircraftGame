@@ -14,7 +14,7 @@ public class BossEnemyFactory implements EnemyFactory{
                 (int) (Math.random() * Main.WINDOW_HEIGHT * 0.05),
                 10,
                 0, // speedY
-                10000 // 血量比 Mob 厚一点
+                50000
         );
     }
 }

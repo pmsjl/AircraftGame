@@ -44,20 +44,20 @@ public class EliteProEnemy extends AbstractAircraft {
     public List<AbstractProp> dropProps() {
         List<AbstractProp> res = new LinkedList<>();
         double num = Math.random();
-        if (num < 0.4) {
+        if (num < 0.1) {
             // 用工厂造一个加血道具，位置就在当前精英机爆炸的地方
             AbstractProp blood = PropFactory.createProp("Blood", this.getLocationX(), this.getLocationY());
             if (blood != null) {
                 res.add(blood);
                 System.out.println("王牌机掉落了加血道具！");
             }
-        } else if (num > 0.8) {
+        } else if (num > 0.9) {
             AbstractProp bulletplus = PropFactory.createProp("SuperFire", this.getLocationX(), this.getLocationY());
             if (bulletplus != null) {
                 res.add(bulletplus);
                 System.out.println("王牌机掉落了超级弹药道具！");
             }
-        } else {
+        } else if(num>0.4&&num<0.45){
             AbstractProp bomb = PropFactory.createProp("Bomb", this.getLocationX(), this.getLocationY());
             if (bomb != null) {
                 res.add(bomb);

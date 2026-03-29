@@ -7,6 +7,7 @@ import edu.hitsz.enemy.BossEnemy;
 import edu.hitsz.enemy.MobEnemy;
 import edu.hitsz.factory.*;
 import edu.hitsz.prop.AbstractProp;
+import edu.hitsz.utils.MusicThread;
 
 import javax.swing.*;
 import java.awt.*;
@@ -90,7 +91,8 @@ public class Game extends JPanel {
         new HeroController(this, heroAircraft);
 
         this.timer = new Timer("game-action-timer", true);
-
+        //背景音乐循环播放
+        new MusicThread("src/videos/bgm.wav", true).start();
     }
 
     /**
@@ -232,9 +234,10 @@ public class Game extends JPanel {
                 continue;
             }
             if (heroAircraft.crash(enemyBullet)) {
-                // 敌机撞击到英雄机子弹
-                // 敌机损失一定生命值
+                // 英雄机中子弹
+                // 英雄机损失一定生命值
                 heroAircraft.decreaseHp(enemyBullet.getPower());
+                new MusicThread("src/videos/bullet_hit.wav", false).start();
                 enemyBullet.vanish();
             }
         }
@@ -255,6 +258,7 @@ public class Game extends JPanel {
                     // 敌机撞击到英雄机子弹
                     // 敌机损失一定生命值
                     enemyAircraft.decreaseHp(bullet.getPower());
+                    new MusicThread("src/videos/bullet_hit.wav", false).start();
                     bullet.vanish();
                     if (enemyAircraft.notValid()) {
                         // TODO 获得分数，产生道具补给
@@ -300,7 +304,7 @@ public class Game extends JPanel {
 
             // 产生 Boss 机（假设你已经写好了 BossEnemyFactory）
             enemyAircrafts.add(bossEnemyFactory.createEnemy());
-
+            new MusicThread("src/videos/bgm_boss.wav", false).start();
             System.out.println("警告！分数达到 " + bossThreshold + "，Boss 机降临！");
 
             // 把下一次触发 Boss 的阈值提高
@@ -312,6 +316,7 @@ public class Game extends JPanel {
     }
 
     private void FreezeUpdate() {
+
         for (AbstractAircraft enemyAircraft : enemyAircrafts) {
             if (enemyAircraft.updateOnFreeze()) {
                 freezeIsActive = true;
@@ -321,6 +326,7 @@ public class Game extends JPanel {
     }
 
     private void BombUpdate() {
+        new MusicThread("src/videos/bomb_explosion.wav", false).start();
         for (AbstractAircraft enemyAircraft : enemyAircrafts) {
             score += enemyAircraft.updateOnBomb();
         }
@@ -350,6 +356,7 @@ public class Game extends JPanel {
         if (heroAircraft.getHp() <= 0) {
             timer.cancel(); // 取消定时器并终止所有调度任务
             gameOverFlag = true;
+            new MusicThread("src/videos/game_over.wav", false).start();
             System.out.println("Game Over!");
         }
     }
