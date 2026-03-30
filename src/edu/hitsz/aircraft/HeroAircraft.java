@@ -17,19 +17,16 @@ public class HeroAircraft extends AbstractAircraft {
 
     // 【新增】Buff 状态管理
     private int currentBuffPriority = 0; // 当前Buff优先级：0=无，1=普通火力，2=超级火力
-    private int buffVersion = 0;         // 当前Buff的版本号，用于道具叠加后的延时处理
-
-
+    private int buffVersion = 0; // 当前Buff的版本号，用于道具叠加后的延时处理
 
     private static volatile HeroAircraft instance;
-
 
     private HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
         // 父类已有对应值无需重新定义直接赋值即可
         this.shootNum = 3;
-        this.originalShootNum=3;
-        this.direction = -1;
+        this.originalShootNum = 3;
+        this.direction = -3;
         this.power = 10;
         this.setShootStrategy(new NormalShootStrategy());
     }
@@ -50,12 +47,26 @@ public class HeroAircraft extends AbstractAircraft {
                             Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight(),
                             0,
                             0,
-                            1000
-                    );
+                            1000);
                 }
             }
         }
         return instance;
+    }
+
+    /**
+     * 每次开始新游戏时重置英雄机状态。
+     */
+    public synchronized void resetForNewGame() {
+        this.hp = this.maxHp;
+        this.isValid = true;
+        this.currentBuffPriority = 0;
+        this.buffVersion = 0;
+        this.shootNum = this.getOriginalShootNum();
+        this.setShootStrategy(new NormalShootStrategy());
+        this.setLocation(
+                Main.WINDOW_WIDTH / 2,
+                Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight());
     }
 
     @Override
@@ -66,17 +77,17 @@ public class HeroAircraft extends AbstractAircraft {
     @Override
     /**
      * 通过射击产生子弹
+     * 
      * @return 射击出的子弹List
      */
     public List<BaseBullet> shoot() {
-        return shootStrategy.Shoot(this,10);
+        return shootStrategy.Shoot(this, 15);
     }
 
     @Override
     public void updateOnUnfreeze() {
 
     }
-
 
     @Override
     public int updateOnBomb() {
@@ -88,10 +99,9 @@ public class HeroAircraft extends AbstractAircraft {
         return false;
     }
 
-
-
     /**
      * 【核心逻辑】：申请使用 Buff
+     * 
      * @param priority 申请的Buff优先级
      * @return 成功发放的“版本号令牌”。如果返回 -1，说明申请被拒绝（被高阶覆盖了）
      */
@@ -108,6 +118,7 @@ public class HeroAircraft extends AbstractAircraft {
 
     /**
      * 【核心逻辑】：尝试清除 Buff
+     * 
      * @param version 线程持有的“版本号令牌”
      */
     public synchronized void clearBuff(int version) {

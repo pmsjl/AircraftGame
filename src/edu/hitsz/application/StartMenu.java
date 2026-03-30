@@ -36,11 +36,20 @@ public class StartMenu extends JPanel {
     private void startGame(Difficulty difficulty) {
         System.out.println("玩家选择了难度: " + difficulty.getDisplayName());
 
+        // 清理旧游戏面板，避免同名卡片叠加导致状态混乱
+        for (Component component : Main.cardPanel.getComponents()) {
+            if (component instanceof Game) {
+                Main.cardPanel.remove(component);
+            }
+        }
+
         // 1. 在这里才真正创建 Game 实例，并把难度喂给它！
         Game game = new Game(difficulty);
 
         // 2. 把刚创建好的游戏画面，塞进 Main 的卡片底板里，代号叫 "game"
         Main.cardPanel.add(game, "game");
+        Main.cardPanel.revalidate();
+        Main.cardPanel.repaint();
 
         // 3. 呼叫发牌员 Main，把画面瞬间切到 "game" 这张卡片！
         Main.cardLayout.show(Main.cardPanel, "game");

@@ -20,9 +20,13 @@ public class RecordDaoImpl implements RecordDao {
         loadFromFile();
     }
 
+    /***
+     * 获取指定难度的数据记录
+     * @param difficulty
+     * @return
+     */
     @Override
     public List<PlayerRecord> getAllRecords(Difficulty difficulty) {
-        // 利用 Java 8 的流过滤，只把请求的对应难度的记录挑出来返回
         return records.stream()
                 .filter(r -> r.getDifficulty() == difficulty)
                 .collect(Collectors.toList());
