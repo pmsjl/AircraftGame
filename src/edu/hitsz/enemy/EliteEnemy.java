@@ -45,7 +45,7 @@ public class EliteEnemy extends AbstractAircraft {
     @Override
     public List<BaseBullet> shoot() {
 
-        return shootStrategy.Shoot(this, 10);
+        return shootStrategy.Shoot(this, 5);
     }
 
 

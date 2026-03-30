@@ -22,7 +22,7 @@ public class EliteProEnemy extends AbstractAircraft {
         this.score = 30;
         this.shootNum = 1;
         this.power = 25;
-        this.direction = 3;
+        this.direction = 2;
         this.shootStrategy = new NormalShootStrategy();
     }
 
@@ -74,7 +74,7 @@ public class EliteProEnemy extends AbstractAircraft {
 
     @Override
     public List<BaseBullet> shoot() {
-        return shootStrategy.Shoot(this, 18);
+        return shootStrategy.Shoot(this, 10);
     }
 
     @Override

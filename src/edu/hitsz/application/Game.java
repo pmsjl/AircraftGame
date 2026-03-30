@@ -28,9 +28,9 @@ public class Game extends JPanel {
 
     private int backGroundTop = 0;
 
-    //调度器, 用于定时任务调度
+    // 调度器, 用于定时任务调度
     private final Timer timer;
-    //时间间隔(ms)，控制刷新频率
+    // 时间间隔(ms)，控制刷新频率
     private final int timeInterval = 40;
 
     private final HeroAircraft heroAircraft;
@@ -38,33 +38,30 @@ public class Game extends JPanel {
     private final List<BaseBullet> heroBullets;
     private final List<BaseBullet> enemyBullets;
 
-    //屏幕中出现的敌机最大数量
+    // 屏幕中出现的敌机最大数量
     private final int enemyMaxNumber = 10;
 
-    //敌机生成周期
+    // 敌机生成周期
     protected double enemySpawnCycle;
     private int enemySpawnCounter = 0;
 
-    //英雄机和敌机射击周期
-    protected double heroShootCycle = 2;
+    // 英雄机和敌机射击周期
+    protected double heroShootCycle = 3;
     protected double enemyShootCycle = 10;
     private int heroShootCounter = 0;
     private int enemyShootCounter = 0;
-    //当前玩家分数
+    // 当前玩家分数
     private int score = 0;
 
+    // 道具生效周期
 
-    //道具生效周期
-
-    //冰冻生效时长控制
+    // 冰冻生效时长控制
     protected double freezeCycle = 50;
     private boolean freezeIsActive = false;
     private int freezeCounter = 0;
 
-
-    //游戏结束标志
+    // 游戏结束标志
     private boolean gameOverFlag = false;
-
 
     // 【新增】存放当前屏幕上所有道具的列表
     private final List<AbstractProp> props;
@@ -76,15 +73,14 @@ public class Game extends JPanel {
     private final EnemyFactory eliteProEnemyFactory = new EliteProEnemyFactory();
     private final EnemyFactory bossEnemyFactory = new BossEnemyFactory();
 
-
-    //boss机出现的处理方式
+    // boss机出现的处理方式
     // 下一次产生 Boss 的分数阈值（比如 500 分出第一个，1000 分出第二个）
     private int bossThreshold = 500;
 
     private boolean bossActive = false;
 
-
     private final Difficulty difficulty;
+
     public Game(Difficulty difficulty) {
         this.difficulty = difficulty;
 
@@ -95,16 +91,17 @@ public class Game extends JPanel {
         // 你也可以在这里调整 bossThreshold 比如困难模式 300分就出 Boss
 
         heroAircraft = HeroAircraft.getInstance();
+        heroAircraft.resetForNewGame();
         enemyAircrafts = new LinkedList<>();
         heroBullets = new LinkedList<>();
         enemyBullets = new LinkedList<>();
         props = new LinkedList<>();
 
-        //启动英雄机鼠标监听
+        // 启动英雄机鼠标监听
         new HeroController(this, heroAircraft);
 
         this.timer = new Timer("game-action-timer", true);
-        //背景音乐循环播放
+        // 背景音乐循环播放
         new MusicThread("src/videos/bgm.wav", true).start();
     }
 
@@ -131,7 +128,7 @@ public class Game extends JPanel {
                 bulletsMoveAction();
                 // 飞机移动
                 aircraftsMoveAction();
-                //道具移动
+                // 道具移动
                 propsMoveAction();
                 // 撞击检测
                 crashCheckAction();
@@ -150,7 +147,7 @@ public class Game extends JPanel {
 
     }
 
-    //道具是否生效的判断，只有接触到道具后才会开始计时，时间到达后就会进行归位
+    // 道具是否生效的判断，只有接触到道具后才会开始计时，时间到达后就会进行归位
     private void updatePropAction() {
         if (freezeIsActive) {
             freezeCounter++;
@@ -163,7 +160,6 @@ public class Game extends JPanel {
             }
         }
     }
-
 
     private void generateEnemy() {
         if (enemyAircrafts.size() < enemyMaxNumber) {
@@ -186,18 +182,17 @@ public class Game extends JPanel {
         }
     }
 
-    //***********************
-    //      Action 各部分
-    //***********************
+    // ***********************
+    // Action 各部分
+    // ***********************
 
     private void shootAction() {
         heroShootCounter++;
         enemyShootCounter++;
         if (heroShootCounter >= heroShootCycle) {
             heroShootCounter = 0;
-            //英雄机射击
+            // 英雄机射击
             heroBullets.addAll(heroAircraft.shoot());
-
 
         }
         if (enemyShootCounter >= enemyShootCycle) {
@@ -233,7 +228,6 @@ public class Game extends JPanel {
 
     }
 
-
     /**
      * 碰撞检测：
      * 1. 敌机攻击英雄
@@ -254,7 +248,6 @@ public class Game extends JPanel {
                 enemyBullet.vanish();
             }
         }
-
 
         // 英雄子弹攻击敌机
         for (BaseBullet bullet : heroBullets) {
@@ -309,7 +302,7 @@ public class Game extends JPanel {
             }
         }
 
-        //对于boss机的出现与否进行判断
+        // 对于boss机的出现与否进行判断
         if (score >= bossThreshold && !bossActive) {
 
             // 标志位置为 true，说明 Boss 降临了，锁住！
@@ -324,7 +317,6 @@ public class Game extends JPanel {
 
             bossThreshold += 3000;
         }
-
 
     }
 
@@ -365,45 +357,56 @@ public class Game extends JPanel {
      * 检查游戏是否结束，若结束：关闭线程池
      */
     private void checkResultAction() {
+        if (gameOverFlag) {
+            return;
+        }
+
         // 游戏结束检查英雄机是否存活
         if (heroAircraft.getHp() <= 0) {
-            timer.cancel(); // 取消定时器并终止所有调度任务
             gameOverFlag = true;
+            timer.cancel(); // 取消定时器并终止所有调度任务
             new MusicThread("src/videos/game_over.wav", false).start();
             System.out.println("Game Over!");
             String playerName = JOptionPane.showInputDialog(
                     this,
                     "游戏结束！\n你的得分为: " + score + "\n请输入玩家名字以记录成绩:",
                     "结算",
-                    JOptionPane.QUESTION_MESSAGE
-            );
+                    JOptionPane.QUESTION_MESSAGE);
 
             // 2. 检查玩家是否输入了名字（如果点了取消，playerName 会是 null）
             if (playerName != null && !playerName.trim().isEmpty()) {
                 // 【DAO 接入】获取当前时间的格式化字符串
-                String currentTime = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MM-dd HH:mm"));
+                String currentTime = java.time.LocalDateTime.now()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("MM-dd HH:mm"));
 
                 // 封装成一个实体类
                 PlayerRecord newRecord = new PlayerRecord(playerName, score, this.difficulty, currentTime);
 
+                // 利用序列化流写入bat文件
                 RecordDao recordDao = new RecordDaoImpl();
                 recordDao.addRecord(newRecord);
 
                 System.out.println("玩家记录已保存至本地文件！");
             }
-            //显现排行榜
+            // 显现排行榜
+            for (Component component : Main.cardPanel.getComponents()) {
+                if (component instanceof ScoreBoard) {
+                    Main.cardPanel.remove(component);
+                }
+            }
             ScoreBoard scoreBoard = new ScoreBoard(this.difficulty);
             Main.cardPanel.add(scoreBoard, "score");
-
+            Main.cardPanel.revalidate();
+            Main.cardPanel.repaint();
             Main.cardLayout.show(Main.cardPanel, "score");
         }
     }
 
     ;
 
-    //***********************
-    //      Paint 各部分
-    //***********************
+    // ***********************
+    // Paint 各部分
+    // ***********************
 
     /**
      * 重写 paint方法
@@ -433,7 +436,7 @@ public class Game extends JPanel {
         g.drawImage(ImageManager.HERO_IMAGE, heroAircraft.getLocationX() - ImageManager.HERO_IMAGE.getWidth() / 2,
                 heroAircraft.getLocationY() - ImageManager.HERO_IMAGE.getHeight() / 2, null);
 
-        //绘制得分和生命值
+        // 绘制得分和生命值
         paintScoreAndLife(g);
 
     }

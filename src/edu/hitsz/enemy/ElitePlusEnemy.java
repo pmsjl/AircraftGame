@@ -46,7 +46,7 @@ public class ElitePlusEnemy extends AbstractAircraft implements BombObserver {
 
     @Override
     public List<BaseBullet> shoot() {
-        return shootStrategy.Shoot(this, 18);
+        return shootStrategy.Shoot(this, 8);
     }
 
     @Override
