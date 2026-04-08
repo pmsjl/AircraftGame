@@ -1,156 +1,262 @@
 @startuml
 'https://plantuml.com/class-diagram
-title 飞机大战 - 类继承关系图
+title 飞机大战 - 核心实体类继承关系图（完整版）
 
-'========== 接口定义 ==========
+skinparam classAttributeIconSize 0
+
+' ========================================================================================
+'                                    接口定义
+' ========================================================================================
 interface BombObserver {
-    + updateOnBomb():int
+    + updateOnBomb(): int
 }
 
 interface FreezeObserver {
-    + updateOnFreeze():boolean
-    + updateOnUnfreeze():void
+    + updateOnFreeze(): boolean
+    + updateOnUnfreeze(): void
 }
 
-interface ShootStrategy {
-    + Shoot(AbstractAircraft aircraft, int speedSet):List<BaseBullet>
+interface ShootStrategy <<Strategy>> {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
 }
 
-'========== 抽象基类 ==========
+interface EnemyFactory <<FactoryMethod>> {
+    + createEnemy(): AbstractAircraft
+}
+
+' ========================================================================================
+'                                 抽象基类（飞行物体）
+' ========================================================================================
 abstract class AbstractFlyingObject {
-    # locationX:int
-    # locationY:int
-    # speedX:int
-    # speedY:int
-    # image:BufferedImage
-    # width:int
-    # height:int
-    # isValid:boolean
+    # locationX: int
+    # locationY: int
+    # speedX: int
+    # speedY: int
+    # image: BufferedImage
+    # width: int
+    # height: int
+    # isValid: boolean
 
-    + AbstractFlyingObject(int locationX, int locationY, int speedX, int speedY)
-    + forward():void
-    + crash(AbstractFlyingObject flyingObject):boolean
-    + setLocation(double locationX, double locationY):void
-    + getLocationX():int
-    + getLocationY():int
-    + getSpeedY():int
-    + getImage():BufferedImage
-    + getWidth():int
-    + getHeight():int
-    + notValid():boolean
-    + vanish():void
+    + AbstractFlyingObject(locationX: int, locationY: int, speedX: int, speedY: int)
+    + forward(): void
+    + crash(flyingObject: AbstractFlyingObject): boolean
+    + setLocation(locationX: double, locationY: double): void
+    + getLocationX(): int
+    + getLocationY(): int
+    + getSpeedY(): int
+    + getImage(): BufferedImage
+    + getWidth(): int
+    + getHeight(): int
+    + notValid(): boolean
+    + vanish(): void
 }
 
+' ========================================================================================
+'                                 飞机类层次
+' ========================================================================================
 abstract class AbstractAircraft {
-    # maxHp:int
-    # hp:int
-    # shootNum:int
-    # power:int
-    # direction:int
-    # shootStrategy:ShootStrategy
-    # score:int
+    # originalSpeedX: int
+    # originalSpeedY: int
+    # originalShootNum: int
+    # maxHp: int
+    # hp: int
+    # shootNum: int
+    # power: int
+    # direction: int
+    # shootStrategy: ShootStrategy
+    # score: int
 
-    + AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
-    + decreaseHp(int decrease):void
-    + increaseHp(int increase):void
-    + getHp():int
-    + {abstract} shoot():List<BaseBullet>
-    + {abstract} createBullet(int x, int y, int speedX, int speedY, int power):BaseBullet
-    + dropProps():List<AbstractProp>
+    + AbstractAircraft(locationX: int, locationY: int, speedX: int, speedY: int, hp: int)
+    + decreaseHp(decrease: int): void
+    + increaseHp(increase: int): void
+    + getHp(): int
+    + getShootNum(): int
+    + getPower(): int
+    + getDirection(): int
+    + getOriginalShootNum(): int
+    + setShootNum(shootNum: int): void
+    + setShootStrategy(shootStrategy: ShootStrategy): void
+    + getScore(): int
+    + {abstract} shoot(): List<BaseBullet>
+    + {abstract} createBullet(x: int, y: int, speedX: int, speedY: int, power: int): BaseBullet
+    + dropProps(): List<AbstractProp>
+    + {abstract} updateOnUnfreeze(): void
 }
 
-'========== 飞机类 ==========
-class HeroAircraft {
-    - {static} instance:HeroAircraft <<volatile>>
-    - shootNum:int
-    - power:int
-    - direction:int
+class HeroAircraft <<Singleton>> {
+    - {static} instance: HeroAircraft <<volatile>>
+    - currentBuffPriority: int
+    - buffVersion: int
 
-    - HeroAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
-    + {static} getInstance():HeroAircraft
-    + forward():void
-    + shoot():List<BaseBullet>
-    + createBullet(int x, int y, int speedX, int speedY, int power):BaseBullet
+    - HeroAircraft(locationX: int, locationY: int, speedX: int, speedY: int, hp: int)
+    + {static} getInstance(): HeroAircraft
+    + resetForNewGame(): void
+    + applyBuff(priority: int): int
+    + clearBuff(version: int): void
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    + createBullet(x: int, y: int, speedX: int, speedY: int, power: int): BaseBullet
 }
 
 class MobEnemy {
-    + MobEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-    + forward():void
-    + shoot():List<BaseBullet>
+    + MobEnemy(locationX: int, locationY: int, speedX: int, speedY: int, hp: int)
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    + createBullet(...): BaseBullet
+    + updateOnBomb(): int
+    + updateOnFreeze(): boolean
+    + updateOnUnfreeze(): void
 }
 
 class EliteEnemy {
-    + EliteEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-    + forward():void
-    + shoot():List<BaseBullet>
-    + dropProps():List<AbstractProp>
+    + EliteEnemy(locationX: int, locationY: int, speedX: int, speedY: int, hp: int)
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    + createBullet(...): BaseBullet
+    + dropProps(): List<AbstractProp>
+    + updateOnBomb(): int
+    + updateOnFreeze(): boolean
+    + updateOnUnfreeze(): void
 }
 
 class ElitePlusEnemy {
-    + ElitePlusEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-    + dropProps():List<AbstractProp>
+    + ElitePlusEnemy(locationX: int, locationY: int, speedX: int, speedY: int, hp: int)
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    + createBullet(...): BaseBullet
+    + dropProps(): List<AbstractProp>
+    + updateOnBomb(): int
+    + updateOnFreeze(): boolean
+    + updateOnUnfreeze(): void
 }
 
 class EliteProEnemy {
-    + EliteProEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-    + dropProps():List<AbstractProp>
+    + EliteProEnemy(locationX: int, locationY: int, speedX: int, speedY: int, hp: int)
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    + createBullet(...): BaseBullet
+    + dropProps(): List<AbstractProp>
+    + updateOnBomb(): int
+    + updateOnFreeze(): boolean
+    + updateOnUnfreeze(): void
 }
 
 class BossEnemy {
-    + BossEnemy(int locationX, int locationY, int speedX, int speedY, int hp)
-    + shoot():List<BaseBullet>
-    + dropProps():List<AbstractProp>
+    + BossEnemy(locationX: int, locationY: int, speedX: int, speedY: int, hp: int)
+    + forward(): void
+    + shoot(): List<BaseBullet>
+    + createBullet(...): BaseBullet
+    + dropProps(): List<AbstractProp>
+    + updateOnBomb(): int
+    + updateOnFreeze(): boolean
+    + updateOnUnfreeze(): void
 }
 
-'========== 子弹类 ==========
+' ========================================================================================
+'                                    子弹类层次
+' ========================================================================================
 abstract class BaseBullet {
-    - power:int
-    + BaseBullet(int locationX, int locationY, int speedX, int speedY, int power)
-    + forward():void
-    + getPower():int
+    - power: int
+
+    + BaseBullet(locationX: int, locationY: int, speedX: int, speedY: int, power: int)
+    + forward(): void
+    + getPower(): int
 }
 
 class HeroBullet {
-    + HeroBullet(int locationX, int locationY, int speedX, int speedY, int power)
+    + HeroBullet(locationX: int, locationY: int, speedX: int, speedY: int, power: int)
 }
 
 class EnemyBullet {
-    + EnemyBullet(int locationX, int locationY, int speedX, int speedY, int power)
+    + EnemyBullet(locationX: int, locationY: int, speedX: int, speedY: int, power: int)
 }
 
-'========== 道具类 ==========
+' ========================================================================================
+'                                    道具类层次
+' ========================================================================================
 abstract class AbstractProp {
-    + AbstractProp(int locationX, int locationY, int speedX, int speedY)
-    + forward():void
-    + {abstract} effect(HeroAircraft heroAircraft):int
+    + AbstractProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + forward(): void
+    + {abstract} effect(heroAircraft: HeroAircraft): int
 }
 
 class BloodProp {
-    + BloodProp(int locationX, int locationY, int speedX, int speedY)
-    + effect(HeroAircraft heroAircraft):int
+    + BloodProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
 }
 
 class BombProp {
-    + BombProp(int locationX, int locationY, int speedX, int speedY)
-    + effect(HeroAircraft heroAircraft):int
+    + BombProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
 }
 
 class BulletProp {
-    + BulletProp(int locationX, int locationY, int speedX, int speedY)
-    + effect(HeroAircraft heroAircraft):int
+    + BulletProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
 }
 
 class BulletPlusProp {
-    + BulletPlusProp(int locationX, int locationY, int speedX, int speedY)
-    + effect(HeroAircraft heroAircraft):int
+    + BulletPlusProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
 }
 
 class FreezeProp {
-    + FreezeProp(int locationX, int locationY, int speedX, int speedY)
-    + effect(HeroAircraft heroAircraft):int
+    + FreezeProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
 }
 
-'========== 泛化关系（继承）- 带三角箭头的实线 ==========
+' ========================================================================================
+'                              射击策略类层次（策略模式）
+' ========================================================================================
+class NullShootStrategy {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
+}
+
+class StraightShootStrategy {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
+}
+
+class ScatterShootStrategy {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
+}
+
+class RingShootStrategy {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
+}
+
+' ========================================================================================
+'                           敌机工厂类层次（工厂方法模式）
+' ========================================================================================
+class MobEnemyFactory {
+    + createEnemy(): AbstractAircraft
+}
+
+class EliteEnemyFactory {
+    + createEnemy(): AbstractAircraft
+}
+
+class ElitePlusEnemyFactory {
+    + createEnemy(): AbstractAircraft
+}
+
+class EliteProEnemyFactory {
+    + createEnemy(): AbstractAircraft
+}
+
+class BossEnemyFactory {
+    + createEnemy(): AbstractAircraft
+}
+
+' ========================================================================================
+'                           道具工厂（简单工厂模式）
+' ========================================================================================
+class PropFactory <<SimpleFactory>> {
+    + {static} createProp(type: String, x: int, y: int): AbstractProp
+}
+
+' ========================================================================================
+'                           泛化关系（继承）- 实线三角箭头
+' ========================================================================================
 AbstractFlyingObject <|-- AbstractAircraft
 AbstractFlyingObject <|-- BaseBullet
 AbstractFlyingObject <|-- AbstractProp
@@ -171,14 +277,37 @@ AbstractProp <|-- BulletProp
 AbstractProp <|-- BulletPlusProp
 AbstractProp <|-- FreezeProp
 
-'========== 实现关系 - 带三角箭头的虚线 ==========
+' ========================================================================================
+'                           实现关系 - 虚线三角箭头
+' ========================================================================================
 BombObserver <|.. AbstractAircraft
 FreezeObserver <|.. AbstractAircraft
 
-'========== 关联关系 - 带普通箭头的实心线 ==========
+ShootStrategy <|.. NullShootStrategy
+ShootStrategy <|.. StraightShootStrategy
+ShootStrategy <|.. ScatterShootStrategy
+ShootStrategy <|.. RingShootStrategy
+
+EnemyFactory <|.. MobEnemyFactory
+EnemyFactory <|.. EliteEnemyFactory
+EnemyFactory <|.. ElitePlusEnemyFactory
+EnemyFactory <|.. EliteProEnemyFactory
+EnemyFactory <|.. BossEnemyFactory
+
+' ========================================================================================
+'                           关联关系 - 实线箭头
+' ========================================================================================
 AbstractAircraft --> ShootStrategy : shootStrategy
 
-'========== 依赖关系 - 带箭头的虚线 ==========
+' ========================================================================================
+'                           依赖关系 - 虚线箭头
+' ========================================================================================
 AbstractProp ..> HeroAircraft : <<use>> effect()
+PropFactory ..> AbstractProp : <<create>>
+MobEnemyFactory ..> MobEnemy : <<create>>
+EliteEnemyFactory ..> EliteEnemy : <<create>>
+ElitePlusEnemyFactory ..> ElitePlusEnemy : <<create>>
+EliteProEnemyFactory ..> EliteProEnemy : <<create>>
+BossEnemyFactory ..> BossEnemy : <<create>>
 
 @enduml

@@ -47,7 +47,7 @@ public class Game extends JPanel {
 
     // 英雄机和敌机射击周期
     protected double heroShootCycle = 3;
-    protected double enemyShootCycle = 10;
+    protected double enemyShootCycle;
     private int heroShootCounter = 0;
     private int enemyShootCounter = 0;
     // 当前玩家分数
@@ -88,6 +88,7 @@ public class Game extends JPanel {
         // 例如：难度越高，乘数越大，周期越短，敌机出得越快！
         // 简单(1.0) = 8帧出一个; 普通(1.5) ≈ 5帧出一个; 困难(2.0) = 4帧出一个
         this.enemySpawnCycle = 12 / difficulty.getScoreMultiplier();
+        this.enemyShootCycle = 18 / difficulty.getScoreMultiplier();
         // 你也可以在这里调整 bossThreshold 比如困难模式 300分就出 Boss
 
         heroAircraft = HeroAircraft.getInstance();
@@ -164,21 +165,21 @@ public class Game extends JPanel {
     private void generateEnemy() {
         if (enemyAircrafts.size() < enemyMaxNumber) {
             double rand = Math.random();
-            AbstractAircraft newEnemy;
+            AbstractAircraft newEnemy = null;
 
             if (rand < 0.25) {
-                // 20% 概率产生精英机
                 newEnemy = eliteEnemyFactory.createEnemy();
             } else if (rand > 0.85) {
                 newEnemy = elitePlusEnemyFactory.createEnemy();
             } else if (rand <= 0.85 && rand >= 0.35) {
                 newEnemy = eliteProEnemyFactory.createEnemy();
             } else {
-                // 50% 概率产生普通机
-                newEnemy = mobEnemyFactory.createEnemy();
+
             }
             // 将工厂生产好的敌机加入队列
-            enemyAircrafts.add(newEnemy);
+            if (newEnemy != null) {
+                enemyAircrafts.add(newEnemy);
+            }
         }
     }
 

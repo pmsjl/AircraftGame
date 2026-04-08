@@ -4,7 +4,9 @@ import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.bullet.HeroBullet;
 import edu.hitsz.application.ImageManager;
 import edu.hitsz.application.Main;
-import edu.hitsz.strategy.NormalShootStrategy;
+import edu.hitsz.strategy.RingShootStrategy;
+import edu.hitsz.strategy.ShootStrategy;
+import edu.hitsz.strategy.StraightShootStrategy;
 
 import java.util.List;
 
@@ -28,7 +30,7 @@ public class HeroAircraft extends AbstractAircraft {
         this.originalShootNum = 3;
         this.direction = -3;
         this.power = 10;
-        this.setShootStrategy(new NormalShootStrategy());
+        this.setShootStrategy(new StraightShootStrategy());
     }
 
     @Override
@@ -63,7 +65,7 @@ public class HeroAircraft extends AbstractAircraft {
         this.currentBuffPriority = 0;
         this.buffVersion = 0;
         this.shootNum = this.getOriginalShootNum();
-        this.setShootStrategy(new NormalShootStrategy());
+        this.setShootStrategy(new StraightShootStrategy());
         this.setLocation(
                 Main.WINDOW_WIDTH / 2,
                 Main.WINDOW_HEIGHT - ImageManager.HERO_IMAGE.getHeight());
@@ -81,7 +83,7 @@ public class HeroAircraft extends AbstractAircraft {
      * @return 射击出的子弹List
      */
     public List<BaseBullet> shoot() {
-        return shootStrategy.Shoot(this, 15);
+        return shootStrategy.Shoot(this, 10);
     }
 
     @Override
@@ -127,6 +129,8 @@ public class HeroAircraft extends AbstractAircraft {
         if (this.buffVersion == version) {
             this.currentBuffPriority = 0; // 优先级归零
             this.shootNum = this.getOriginalShootNum(); // 恢复基础子弹数
+            this.setShootStrategy(new StraightShootStrategy());
+
             System.out.println("道具时间到，恢复基础状态。");
         } else {
             // 如果对不上，说明玩家在期间吃了新道具，这个老线程只能乖乖“默默死亡”，不准改子弹！
