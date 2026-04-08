@@ -8,8 +8,7 @@ import edu.hitsz.bullet.EnemyBullet;
 import edu.hitsz.factory.PropFactory;
 import edu.hitsz.observer.BombObserver;
 import edu.hitsz.prop.AbstractProp;
-import edu.hitsz.strategy.NormalShootStrategy;
-import edu.hitsz.strategy.ShootStrategy;
+import edu.hitsz.strategy.StraightShootStrategy;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,10 +20,10 @@ public class ElitePlusEnemy extends AbstractAircraft implements BombObserver {
     public ElitePlusEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
         this.score = 25;
-        this.shootNum = 1;
+        this.shootNum = 2;
         this.power = 20;
         this.direction = 2;
-        this.shootStrategy = new NormalShootStrategy();
+        this.shootStrategy = new StraightShootStrategy();
         this.originalSpeedX = speedX;
         this.originalSpeedY = speedY;
 
@@ -46,29 +45,43 @@ public class ElitePlusEnemy extends AbstractAircraft implements BombObserver {
 
     @Override
     public List<BaseBullet> shoot() {
-        return shootStrategy.Shoot(this, 8);
+        return shootStrategy.Shoot(this, 2);
     }
 
     @Override
     public List<AbstractProp> dropProps() {
+
         List<AbstractProp> res = new LinkedList<>();
         double num = Math.random();
+        AbstractProp prop = null;
+        String propName="";
         if (num < 0.1) {
-            // 用工厂造一个加血道具，位置就在当前精英机爆炸的地方
-            AbstractProp blood = PropFactory.createProp("Blood", this.getLocationX(), this.getLocationY());
-            if (blood != null) {
-                res.add(blood);
-                System.out.println("精锐机掉落了加血道具！");
-            }
-        } else if (num > 0.9) {
-            AbstractProp bulletplus = PropFactory.createProp("SuperFire", this.getLocationX(), this.getLocationY());
-            if (bulletplus != null) {
-                res.add(bulletplus);
-                System.out.println("精锐机掉落了超级弹药道具！");
-            }
+            prop = PropFactory.createProp("Blood", this.getLocationX(), this.getLocationY());
+            propName = "加血道具";
+
+        } else if (num < 0.2) {
+            prop = PropFactory.createProp("Fire", this.getLocationX(), this.getLocationY());
+            propName = "火力道具";
+
+        } else if (num < 0.3) {
+            prop = PropFactory.createProp("SuperFire", this.getLocationX(), this.getLocationY());
+            propName = "超级火力道具";
+
+        } else if (num < 0.35) {
+            prop = PropFactory.createProp("Bomb", this.getLocationX(), this.getLocationY());
+            propName = "炸弹道具";
+
+        } else {
+
+        }
+        // 如果真的掉落了东西，把它装进列表里返回
+        if (prop != null) {
+            res.add(prop);
+            System.out.println("精锐机坠毁，掉落了：" + propName + "！");
         }
         return res;
     }
+
 
     @Override
     public int updateOnBomb() {

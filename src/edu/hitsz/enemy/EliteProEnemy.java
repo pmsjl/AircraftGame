@@ -6,7 +6,8 @@ import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.bullet.EnemyBullet;
 import edu.hitsz.factory.PropFactory;
 import edu.hitsz.prop.AbstractProp;
-import edu.hitsz.strategy.NormalShootStrategy;
+import edu.hitsz.strategy.ScatterShootStrategy;
+import edu.hitsz.strategy.StraightShootStrategy;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,10 +21,10 @@ public class EliteProEnemy extends AbstractAircraft {
     public EliteProEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
         this.score = 30;
-        this.shootNum = 1;
+        this.shootNum = 3;
         this.power = 25;
         this.direction = 2;
-        this.shootStrategy = new NormalShootStrategy();
+        this.shootStrategy = new ScatterShootStrategy();
     }
 
     @Override
@@ -42,30 +43,42 @@ public class EliteProEnemy extends AbstractAircraft {
 
     @Override
     public List<AbstractProp> dropProps() {
+
         List<AbstractProp> res = new LinkedList<>();
         double num = Math.random();
+        AbstractProp prop = null;
+        String propName="";
         if (num < 0.1) {
-            // 用工厂造一个加血道具，位置就在当前精英机爆炸的地方
-            AbstractProp blood = PropFactory.createProp("Blood", this.getLocationX(), this.getLocationY());
-            if (blood != null) {
-                res.add(blood);
-                System.out.println("王牌机掉落了加血道具！");
-            }
-        } else if (num > 0.9) {
-            AbstractProp bulletplus = PropFactory.createProp("SuperFire", this.getLocationX(), this.getLocationY());
-            if (bulletplus != null) {
-                res.add(bulletplus);
-                System.out.println("王牌机掉落了超级弹药道具！");
-            }
-        } else if(num>0.4&&num<0.45){
-            AbstractProp bomb = PropFactory.createProp("Bomb", this.getLocationX(), this.getLocationY());
-            if (bomb != null) {
-                res.add(bomb);
-                System.out.println("王牌机掉落了炸弹道具！");
-            }
+            prop = PropFactory.createProp("Blood", this.getLocationX(), this.getLocationY());
+            propName = "加血道具";
+
+        } else if (num < 0.2) {
+            prop = PropFactory.createProp("Fire", this.getLocationX(), this.getLocationY());
+            propName = "火力道具";
+
+        } else if (num < 0.3) {
+            prop = PropFactory.createProp("SuperFire", this.getLocationX(), this.getLocationY());
+            propName = "超级火力道具";
+
+        } else if (num < 0.35) {
+            prop = PropFactory.createProp("Bomb", this.getLocationX(), this.getLocationY());
+            propName = "炸弹道具";
+
+        } else if (num < 0.4) {
+            prop = PropFactory.createProp("Freeze", this.getLocationX(), this.getLocationY());
+            propName = "冰冻道具";
+
+        } else {
+
+        }
+        // 如果真的掉落了东西，把它装进列表里返回
+        if (prop != null) {
+            res.add(prop);
+            System.out.println("王牌机坠毁，掉落了：" + propName + "！");
         }
         return res;
     }
+
 
     @Override
     public void updateOnUnfreeze() {
@@ -74,7 +87,7 @@ public class EliteProEnemy extends AbstractAircraft {
 
     @Override
     public List<BaseBullet> shoot() {
-        return shootStrategy.Shoot(this, 10);
+        return shootStrategy.Shoot(this, 5);
     }
 
     @Override

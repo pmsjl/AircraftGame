@@ -6,7 +6,7 @@ import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.bullet.EnemyBullet;
 import edu.hitsz.factory.PropFactory;
 import edu.hitsz.prop.AbstractProp;
-import edu.hitsz.strategy.NormalShootStrategy;
+import edu.hitsz.strategy.StraightShootStrategy;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -23,7 +23,7 @@ public class EliteEnemy extends AbstractAircraft {
         this.shootNum = 1;
         this.power = 15;
         this.direction = 1;
-        this.shootStrategy = new NormalShootStrategy();
+        this.shootStrategy = new StraightShootStrategy();
         this.originalSpeedX=speedX;
         this.originalSpeedY=speedY;
     }
@@ -54,25 +54,27 @@ public class EliteEnemy extends AbstractAircraft {
 
         List<AbstractProp> res = new LinkedList<>();
         double num = Math.random();
+        AbstractProp prop = null;
+        String propName="";
         if (num < 0.1) {
-            // 用工厂造一个加血道具，位置就在当前精英机爆炸的地方
-            AbstractProp blood = PropFactory.createProp("Blood", this.getLocationX(), this.getLocationY());
-            if (blood != null) {
-                res.add(blood);
-                System.out.println("精英机掉落了加血道具！");
-            }
-        } else if (num > 0.9) {
-            AbstractProp bullet = PropFactory.createProp("Fire", this.getLocationX(), this.getLocationY());
-            if (bullet != null) {
-                res.add(bullet);
-                System.out.println("精英机掉落了弹药道具！");
-            }
-        }else{
-            AbstractProp freeze = PropFactory.createProp("Freeze", this.getLocationX(), this.getLocationY());
-            if (freeze != null) {
-                res.add(freeze);
-                System.out.println("精英机掉落了冰冻道具！");
-            }
+            prop = PropFactory.createProp("Blood", this.getLocationX(), this.getLocationY());
+            propName = "加血道具";
+
+        } else if (num < 0.2) {
+            prop = PropFactory.createProp("Fire", this.getLocationX(), this.getLocationY());
+            propName = "火力道具";
+
+        } else if (num < 0.3) {
+            prop = PropFactory.createProp("SuperFire", this.getLocationX(), this.getLocationY());
+            propName = "超级火力道具";
+
+        } else {
+
+        }
+        // 如果真的掉落了东西，把它装进列表里返回
+        if (prop != null) {
+            res.add(prop);
+            System.out.println("精英机坠毁，掉落了：" + propName + "！");
         }
         return res;
     }

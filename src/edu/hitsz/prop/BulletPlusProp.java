@@ -1,6 +1,8 @@
 package edu.hitsz.prop;
 
 import edu.hitsz.aircraft.HeroAircraft;
+import edu.hitsz.strategy.RingShootStrategy;
+import edu.hitsz.strategy.StraightShootStrategy;
 import edu.hitsz.utils.MusicThread;
 
 /**
@@ -23,6 +25,7 @@ public class BulletPlusProp extends AbstractProp {
         // 1. 生效：增加子弹数量
 
         heroAircraft.setShootNum(heroAircraft.getShootNum() * 2);
+        heroAircraft.setShootStrategy(new RingShootStrategy());
         new MusicThread("src/videos/get_supply.wav", false).start();
 
         // 【核心修改】：开启一个专门的后台线程来控制火力恢复
