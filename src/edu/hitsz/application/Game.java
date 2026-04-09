@@ -46,7 +46,7 @@ public class Game extends JPanel {
     private int enemySpawnCounter = 0;
 
     // 英雄机和敌机射击周期
-    protected double heroShootCycle = 3;
+    protected double heroShootCycle =3;
     protected double enemyShootCycle;
     private int heroShootCounter = 0;
     private int enemyShootCounter = 0;
@@ -65,6 +65,7 @@ public class Game extends JPanel {
 
     // 【新增】存放当前屏幕上所有道具的列表
     private final List<AbstractProp> props;
+    private final List<AbstractProp>bombDroppedProps;
 
     // --- 工厂实例 ---
     private final EnemyFactory mobEnemyFactory = new MobEnemyFactory();
@@ -93,10 +94,11 @@ public class Game extends JPanel {
 
         heroAircraft = HeroAircraft.getInstance();
         heroAircraft.resetForNewGame();
-        enemyAircrafts = new LinkedList<>();
-        heroBullets = new LinkedList<>();
-        enemyBullets = new LinkedList<>();
-        props = new LinkedList<>();
+        enemyAircrafts = new ArrayList<>();
+        heroBullets = new ArrayList<>();
+        enemyBullets = new ArrayList<>();
+        props = new ArrayList<>();
+        bombDroppedProps=new ArrayList<>();
 
         // 启动英雄机鼠标监听
         new HeroController(this, heroAircraft);
@@ -302,6 +304,8 @@ public class Game extends JPanel {
                 prop.vanish();
             }
         }
+        props.addAll(bombDroppedProps);
+        bombDroppedProps.clear();
 
         // 对于boss机的出现与否进行判断
         if (score >= bossThreshold && !bossActive) {
@@ -334,7 +338,11 @@ public class Game extends JPanel {
     private void BombUpdate() {
         new MusicThread("src/videos/bomb_explosion.wav", false).start();
         for (AbstractAircraft enemyAircraft : enemyAircrafts) {
-            score += enemyAircraft.updateOnBomb();
+            int addScore=enemyAircraft.updateOnBomb();
+            if(addScore>0){
+                bombDroppedProps.addAll(enemyAircraft.dropProps());
+            }
+            score+=addScore;
         }
         enemyBullets.clear();
     }
