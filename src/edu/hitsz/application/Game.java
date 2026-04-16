@@ -4,7 +4,6 @@ import edu.hitsz.aircraft.*;
 import edu.hitsz.bullet.BaseBullet;
 import edu.hitsz.basic.AbstractFlyingObject;
 import edu.hitsz.dao.RecordDao;
-import edu.hitsz.dao.RecordDaoImpl;
 import edu.hitsz.enemy.BossEnemy;
 import edu.hitsz.enemy.MobEnemy;
 import edu.hitsz.factory.*;
@@ -18,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 import java.util.Timer;
+import java.util.Objects;
 
 /**
  * 游戏主面板，游戏启动
@@ -46,7 +46,7 @@ public class Game extends JPanel {
     private int enemySpawnCounter = 0;
 
     // 英雄机和敌机射击周期
-    protected double heroShootCycle =3;
+    protected double heroShootCycle = 3;
     protected double enemyShootCycle;
     private int heroShootCounter = 0;
     private int enemyShootCounter = 0;
@@ -65,7 +65,7 @@ public class Game extends JPanel {
 
     // 【新增】存放当前屏幕上所有道具的列表
     private final List<AbstractProp> props;
-    private final List<AbstractProp>bombDroppedProps;
+    private final List<AbstractProp> bombDroppedProps;
 
     // --- 工厂实例 ---
     private final EnemyFactory mobEnemyFactory = new MobEnemyFactory();
@@ -81,9 +81,11 @@ public class Game extends JPanel {
     private boolean bossActive = false;
 
     private final Difficulty difficulty;
+    private final RecordDao recordDao;
 
-    public Game(Difficulty difficulty) {
+    public Game(Difficulty difficulty, RecordDao recordDao) {
         this.difficulty = difficulty;
+        this.recordDao = Objects.requireNonNull(recordDao, "recordDao");
 
         // 【核心】根据难度，动态调整游戏参数
         // 例如：难度越高，乘数越大，周期越短，敌机出得越快！
@@ -98,7 +100,7 @@ public class Game extends JPanel {
         heroBullets = new ArrayList<>();
         enemyBullets = new ArrayList<>();
         props = new ArrayList<>();
-        bombDroppedProps=new ArrayList<>();
+        bombDroppedProps = new ArrayList<>();
 
         // 启动英雄机鼠标监听
         new HeroController(this, heroAircraft);
@@ -306,7 +308,6 @@ public class Game extends JPanel {
         }
         props.addAll(bombDroppedProps);
         bombDroppedProps.clear();
-
         // 对于boss机的出现与否进行判断
         if (score >= bossThreshold && !bossActive) {
 
@@ -336,15 +337,17 @@ public class Game extends JPanel {
     }
 
     private void BombUpdate() {
+        bombDroppedProps.clear();
         new MusicThread("src/videos/bomb_explosion.wav", false).start();
         for (AbstractAircraft enemyAircraft : enemyAircrafts) {
-            int addScore=enemyAircraft.updateOnBomb();
-            if(addScore>0){
+            int addScore = enemyAircraft.updateOnBomb();
+            if (addScore > 0) {
                 bombDroppedProps.addAll(enemyAircraft.dropProps());
             }
-            score+=addScore;
+            score += addScore;
         }
         enemyBullets.clear();
+
     }
 
     /**
@@ -391,8 +394,6 @@ public class Game extends JPanel {
                 // 封装成一个实体类
                 PlayerRecord newRecord = new PlayerRecord(playerName, score, this.difficulty, currentTime);
 
-                // 利用序列化流写入bat文件
-                RecordDao recordDao = new RecordDaoImpl();
                 recordDao.addRecord(newRecord);
 
                 System.out.println("玩家记录已保存至本地文件！");
@@ -403,7 +404,7 @@ public class Game extends JPanel {
                     Main.cardPanel.remove(component);
                 }
             }
-            ScoreBoard scoreBoard = new ScoreBoard(this.difficulty);
+            ScoreBoard scoreBoard = new ScoreBoard(this.difficulty, this.recordDao);
             Main.cardPanel.add(scoreBoard, "score");
             Main.cardPanel.revalidate();
             Main.cardPanel.repaint();
