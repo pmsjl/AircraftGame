@@ -1,13 +1,14 @@
 package edu.hitsz.application;
 
 import edu.hitsz.dao.RecordDao;
-import edu.hitsz.dao.RecordDaoImpl;
 import edu.hitsz.record.PlayerRecord;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 排行榜面板
@@ -16,12 +17,13 @@ public class ScoreBoard extends JPanel {
 
     private final Difficulty difficulty;
     private final RecordDao recordDao;
+    private List<PlayerRecord> currentRecords = Collections.emptyList();
     private DefaultTableModel tableModel;
     private JTable scoreTable;
 
-    public ScoreBoard(Difficulty difficulty) {
+    public ScoreBoard(Difficulty difficulty, RecordDao recordDao) {
         this.difficulty = difficulty;
-        this.recordDao = new RecordDaoImpl();
+        this.recordDao = Objects.requireNonNull(recordDao, "recordDao");
 
         // 使用 BorderLayout (东南西北中布局)
         this.setLayout(new BorderLayout());
@@ -44,14 +46,14 @@ public class ScoreBoard extends JPanel {
 
         // 删除按钮逻辑
         deleteBtn.addActionListener(e -> {
-            int selectedRow = scoreTable.getSelectedRow();
-            if (selectedRow != -1) {
+            int selectedViewRow = scoreTable.getSelectedRow();
+            if (selectedViewRow != -1) {
+                int selectedRow = scoreTable.convertRowIndexToModel(selectedViewRow);
                 // 弹窗二次确认
                 int result = JOptionPane.showConfirmDialog(this, "确定要删除选中的记录吗？", "确认删除", JOptionPane.YES_NO_OPTION);
                 if (result == JOptionPane.YES_OPTION) {
-                    // 获取选中的那一行，第 4 列（索引为 3，即记录时间）的数据作为删除凭证
-                    String recordTime = (String) tableModel.getValueAt(selectedRow, 3);
-                    recordDao.deleteRecord(recordTime); // 从文件彻底删除
+                    PlayerRecord selectedRecord = currentRecords.get(selectedRow);
+                    recordDao.deleteRecordById(selectedRecord.getRecordId()); // 从文件彻底删除
                     updateTableData(); // 刷新表格显示
                 }
             } else {
@@ -75,7 +77,7 @@ public class ScoreBoard extends JPanel {
      */
     private void initTable() {
         // 定义表头
-        String[] columnNames = {"名次", "玩家名", "得分", "记录时间"};
+        String[] columnNames = { "名次", "玩家名", "得分", "记录时间" };
         // 初始化数据模型（不允许玩家直接双击修改单元格）
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -98,16 +100,16 @@ public class ScoreBoard extends JPanel {
         tableModel.setRowCount(0);
 
         // 利用 DAO 模式查询当前难度的所有数据
-        List<PlayerRecord> records = recordDao.getAllRecords(difficulty);
+        currentRecords = recordDao.getAllRecords(difficulty);
 
         // 逐行填入表格
         int rank = 1;
-        for (PlayerRecord record : records) {
+        for (PlayerRecord record : currentRecords) {
             Object[] rowData = {
-                    rank++,                      // 名次
-                    record.getPlayerName(),      // 玩家名
-                    record.getScore(),           // 得分
-                    record.getRecordTime()       // 记录时间
+                    rank++, // 名次
+                    record.getPlayerName(), // 玩家名
+                    record.getScore(), // 得分
+                    record.getRecordTime() // 记录时间
             };
             tableModel.addRow(rowData);
         }
