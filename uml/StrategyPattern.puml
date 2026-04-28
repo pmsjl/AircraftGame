@@ -1,0 +1,157 @@
+@startuml
+'https://plantuml.com/class-diagram
+title 飞机大战 - 策略模式（Strategy Pattern）\n弹道系统设计
+
+skinparam classAttributeIconSize 0
+
+' ==================== 策略接口（Strategy） ====================
+interface ShootStrategy <<Strategy>> {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
+}
+
+' ==================== 具体策略（ConcreteStrategy） ====================
+class NullShootStrategy <<ConcreteStrategy>> {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
+    __ 说明 __
+    不发射任何子弹，返回空列表
+    适用于：普通敌机（MobEnemy）
+}
+
+class StraightShootStrategy <<ConcreteStrategy>> {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
+    __ 说明 __
+    子弹沿 direction 方向直线飞行
+    多颗子弹横向平行排列
+    适用于：英雄机（默认）、精英敌机（单排）、精锐敌机（双排）
+}
+
+class ScatterShootStrategy <<ConcreteStrategy>> {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
+    __ 说明 __
+    子弹横向扇形分散飞行
+    横向速度随子弹序号递增
+    适用于：王牌敌机、英雄机（火力道具加成）
+}
+
+class RingShootStrategy <<ConcreteStrategy>> {
+    + Shoot(aircraft: AbstractAircraft, speedSet: int): List<BaseBullet>
+    __ 说明 __
+    子弹 360° 环形均匀发射
+    角度 = (2π / shootNum) × i
+    适用于：Boss敌机、英雄机（超级火力道具加成）
+}
+
+' ==================== 上下文（Context） ====================
+abstract class AbstractAircraft <<Context>> {
+    # shootStrategy: ShootStrategy
+    # shootNum: int
+    # power: int
+    # direction: int
+
+    + setShootStrategy(strategy: ShootStrategy): void
+    + getShootNum(): int
+    + getPower(): int
+    + getDirection(): int
+    + {abstract} shoot(): List<BaseBullet>
+    + {abstract} createBullet(x: int, y: int, speedX: int, speedY: int, power: int): BaseBullet
+}
+
+' ==================== 具体上下文（使用者） ====================
+class HeroAircraft {
+    - shootNum: int = 3
+    - direction: int = -3
+    __ 策略切换 __
+    默认：StraightShootStrategy（直射）
+    火力道具：ScatterShootStrategy（散射）
+    超级火力道具：RingShootStrategy（环射）
+    道具到期：恢复 StraightShootStrategy
+}
+
+class MobEnemy {
+    策略：NullShootStrategy（不射击）
+}
+
+class EliteEnemy {
+    - shootNum: int = 1
+    __ __
+    策略：StraightShootStrategy（单排直射）
+}
+
+class ElitePlusEnemy {
+    - shootNum: int = 2
+    __ __
+    策略：StraightShootStrategy（双排直射）
+}
+
+class EliteProEnemy {
+    - shootNum: int = 3
+    __ __
+    策略：ScatterShootStrategy（散射）
+}
+
+class BossEnemy {
+    - shootNum: int = 20
+    __ __
+    策略：RingShootStrategy（环射）
+}
+
+' ==================== 关系 ====================
+' 实现关系：具体策略实现策略接口
+ShootStrategy <|.. NullShootStrategy
+ShootStrategy <|.. StraightShootStrategy
+ShootStrategy <|.. ScatterShootStrategy
+ShootStrategy <|.. RingShootStrategy
+
+' 关联关系：上下文持有策略引用
+AbstractAircraft --> ShootStrategy : shootStrategy\n（可动态切换）
+
+' 继承关系：具体飞机继承抽象飞机
+AbstractAircraft <|-- HeroAircraft
+AbstractAircraft <|-- MobEnemy
+AbstractAircraft <|-- EliteEnemy
+AbstractAircraft <|-- ElitePlusEnemy
+AbstractAircraft <|-- EliteProEnemy
+AbstractAircraft <|-- BossEnemy
+
+' ==================== 道具触发策略切换（依赖） ====================
+class BulletProp <<火力道具>> {
+    + effect(hero: HeroAircraft): int
+    __ __
+    shootNum += 2
+    切换为 ScatterShootStrategy
+    持续 2 秒后恢复
+}
+
+class BulletPlusProp <<超级火力道具>> {
+    + effect(hero: HeroAircraft): int
+    __ __
+    shootNum *= 2
+    切换为 RingShootStrategy
+    持续 2 秒后恢复
+}
+
+BulletProp ..> HeroAircraft : <<动态切换策略>>
+BulletPlusProp ..> HeroAircraft : <<动态切换策略>>
+BulletProp ..> ScatterShootStrategy : <<create>>
+BulletPlusProp ..> RingShootStrategy : <<create>>
+
+' ==================== 注释 ====================
+note right of ShootStrategy
+    <b>策略模式（Strategy Pattern）</b>
+    ——————————————————
+    <b>意图：</b>定义一系列算法（弹道策略），
+    将每种算法封装到独立类中，
+    使算法对象能够相互替换。
+
+    <b>参与者：</b>
+    • Strategy = ShootStrategy
+    • ConcreteStrategy = NullShoot / Straight / Scatter / Ring
+    • Context = AbstractAircraft（持有 shootStrategy 引用）
+
+    <b>动态切换场景：</b>
+    英雄机吃火力道具 → 散射（ScatterShootStrategy）
+    英雄机吃超级火力道具 → 环射（RingShootStrategy）
+    道具时间到期 → 恢复直射（StraightShootStrategy）
+end note
+
+@enduml

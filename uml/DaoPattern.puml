@@ -1,0 +1,82 @@
+@startuml
+title 飞机大战 - DAO 模式（排行榜模块）
+
+skinparam classAttributeIconSize 0
+
+class Main <<CompositionRoot>> {
+    - RECORD_DAO: RecordDao
+    + getRecordDao(): RecordDao
+}
+
+class StartMenu <<Client>> {
+    - startGame(difficulty: Difficulty): void
+}
+
+class Game <<Business>> {
+    - difficulty: Difficulty
+    - recordDao: RecordDao
+    - score: int
+    + Game(difficulty: Difficulty, recordDao: RecordDao)
+    - checkResultAction(): void
+}
+
+class ScoreBoard <<View>> {
+    - difficulty: Difficulty
+    - recordDao: RecordDao
+    - currentRecords: List<PlayerRecord>
+    + ScoreBoard(difficulty: Difficulty, recordDao: RecordDao)
+    - updateTableData(): void
+}
+
+interface RecordDao <<DAO>> {
+    + getAllRecords(difficulty: Difficulty): List<PlayerRecord>
+    + addRecord(record: PlayerRecord): void
+    + deleteRecordById(recordId: String): void
+}
+
+class RecordDaoImpl <<FileDAO>> {
+    - filePath: Path
+    - records: List<PlayerRecord>
+    + RecordDaoImpl()
+    + RecordDaoImpl(filePath: Path)
+    - loadFromFile(): List<PlayerRecord>
+    - saveToFile(): void
+}
+
+class PlayerRecord <<Entity>> {
+    - recordId: String
+    - playerName: String
+    - score: int
+    - difficulty: Difficulty
+    - recordTime: String
+    + ensureRecordId(): boolean
+}
+
+enum Difficulty <<ValueObject>>
+
+Main --> RecordDaoImpl : 创建唯一实例
+Main --> StartMenu
+StartMenu ..> Game : 注入 RecordDao
+Game --> RecordDao : 保存新成绩
+Game --> ScoreBoard : 注入同一 DAO
+ScoreBoard --> RecordDao : 查询/删除排行榜
+RecordDaoImpl ..|> RecordDao
+RecordDaoImpl --> PlayerRecord : 序列化读写
+PlayerRecord --> Difficulty
+Game --> Difficulty
+ScoreBoard --> Difficulty
+
+note right of RecordDao
+  角色职责
+  1. 对上层暴露统一数据访问接口
+  2. 隐藏底层文件读写细节
+  3. 让界面层和业务层不依赖具体存储实现
+end note
+
+note bottom of RecordDaoImpl
+  具体实现采用文件持久化。
+  读取旧存档后会补齐 recordId，
+  让删除操作不再依赖 recordTime 文本。
+end note
+
+@enduml

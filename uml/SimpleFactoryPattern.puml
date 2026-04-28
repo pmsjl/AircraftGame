@@ -1,0 +1,119 @@
+@startuml
+'https://plantuml.com/class-diagram
+title 飞机大战 - 简单工厂模式（Simple Factory Pattern）\n道具创建系统
+
+skinparam classAttributeIconSize 0
+
+' ==================== 工厂类（Factory） ====================
+class PropFactory <<SimpleFactory>> {
+    + {static} createProp(type: String, x: int, y: int): AbstractProp
+    __ 参数 type 取值 __
+    "Blood"     → BloodProp（加血道具）
+    "Fire"      → BulletProp（火力道具）
+    "SuperFire" → BulletPlusProp（超级火力道具）
+    "Bomb"      → BombProp（炸弹道具）
+    "Freeze"    → FreezeProp（冰冻道具）
+}
+
+' ==================== 抽象产品（Product） ====================
+abstract class AbstractProp <<Product>> {
+    # locationX: int
+    # locationY: int
+    # speedX: int
+    # speedY: int
+
+    + AbstractProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + forward(): void
+    + {abstract} effect(heroAircraft: HeroAircraft): int
+}
+
+' ==================== 具体产品（ConcreteProduct） ====================
+class BloodProp <<ConcreteProduct>> {
+    + BloodProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
+    __ 效果 __
+    恢复英雄机生命值
+}
+
+class BulletProp <<ConcreteProduct>> {
+    + BulletProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
+    __ 效果 __
+    火力增强（shootNum + 2）
+    切换散射策略，持续 2 秒
+}
+
+class BulletPlusProp <<ConcreteProduct>> {
+    + BulletPlusProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
+    __ 效果 __
+    超级火力（shootNum × 2）
+    切换环射策略，持续 2 秒
+}
+
+class BombProp <<ConcreteProduct>> {
+    + BombProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
+    __ 效果 __
+    触发炸弹，通知所有观察者
+}
+
+class FreezeProp <<ConcreteProduct>> {
+    + FreezeProp(locationX: int, locationY: int, speedX: int, speedY: int)
+    + effect(heroAircraft: HeroAircraft): int
+    __ 效果 __
+    冰冻所有敌机
+}
+
+' ==================== 客户端（Client） ====================
+class "EliteEnemy / ElitePlusEnemy\n/ EliteProEnemy / BossEnemy" as Client <<Client>> {
+    + dropProps(): List<AbstractProp>
+    __ __
+    根据随机数调用
+    PropFactory.createProp(type, x, y)
+    产生对应道具
+}
+
+' ==================== 关系 ====================
+' 继承关系：具体产品继承抽象产品
+AbstractProp <|-- BloodProp
+AbstractProp <|-- BulletProp
+AbstractProp <|-- BulletPlusProp
+AbstractProp <|-- BombProp
+AbstractProp <|-- FreezeProp
+
+' 依赖关系：工厂创建产品
+PropFactory ..> AbstractProp : <<create>>
+PropFactory ..> BloodProp : <<create>>
+PropFactory ..> BulletProp : <<create>>
+PropFactory ..> BulletPlusProp : <<create>>
+PropFactory ..> BombProp : <<create>>
+PropFactory ..> FreezeProp : <<create>>
+
+' 客户端使用工厂
+Client ..> PropFactory : <<use>>\n调用 createProp()
+
+' ==================== 注释 ====================
+note right of PropFactory
+    <b>简单工厂模式（Simple Factory Pattern）</b>
+    ——————————————————————————
+    <b>意图：</b>将道具对象的创建逻辑集中封装
+    在一个工厂类中，客户端通过传入类型
+    参数获取对应的道具实例，无需了解具
+    体道具类的实例化细节。
+
+    <b>参与者：</b>
+    • Factory = PropFactory
+    • Product = AbstractProp
+    • ConcreteProduct = BloodProp / BulletProp
+      / BulletPlusProp / BombProp / FreezeProp
+    • Client = 各类敌机的 dropProps() 方法
+
+    <b>优点：</b>
+    • 创建逻辑集中，易于维护
+    • 客户端与具体产品类解耦
+    <b>缺点：</b>
+    • 新增道具类型需修改工厂类（违反开闭原则）
+end note
+
+@enduml

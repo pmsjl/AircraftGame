@@ -1,0 +1,169 @@
+@startuml
+'https://plantuml.com/class-diagram
+title 飞机大战 - 工厂方法模式（Factory Method Pattern）\n敌机创建系统
+
+skinparam classAttributeIconSize 0
+
+' ==================== 抽象工厂（Creator） ====================
+interface EnemyFactory <<Creator>> {
+    + createEnemy(): AbstractAircraft
+}
+
+' ==================== 具体工厂（ConcreteCreator） ====================
+class MobEnemyFactory <<ConcreteCreator>> {
+    + createEnemy(): AbstractAircraft
+    __ 生产 __
+    → MobEnemy（普通敌机）
+    hp=30, speedY=10
+}
+
+class EliteEnemyFactory <<ConcreteCreator>> {
+    + createEnemy(): AbstractAircraft
+    __ 生产 __
+    → EliteEnemy（精英敌机）
+    hp=45, speedY=10
+}
+
+class ElitePlusEnemyFactory <<ConcreteCreator>> {
+    + createEnemy(): AbstractAircraft
+    __ 生产 __
+    → ElitePlusEnemy（精锐敌机）
+    hp=55, speedX=10, speedY=3
+}
+
+class EliteProEnemyFactory <<ConcreteCreator>> {
+    + createEnemy(): AbstractAircraft
+    __ 生产 __
+    → EliteProEnemy（王牌敌机）
+    hp=65, speedX=12, speedY=5
+}
+
+class BossEnemyFactory <<ConcreteCreator>> {
+    + createEnemy(): AbstractAircraft
+    __ 生产 __
+    → BossEnemy（Boss敌机）
+    hp=50000, speedX=10
+}
+
+' ==================== 抽象产品（Product） ====================
+abstract class AbstractAircraft <<Product>> {
+    # hp: int
+    # shootNum: int
+    # power: int
+    # direction: int
+    # shootStrategy: ShootStrategy
+    # score: int
+
+    + {abstract} shoot(): List<BaseBullet>
+    + {abstract} createBullet(...): BaseBullet
+    + dropProps(): List<AbstractProp>
+    + forward(): void
+}
+
+' ==================== 具体产品（ConcreteProduct） ====================
+class MobEnemy <<ConcreteProduct>> {
+    - shootNum: int = 1
+    - score: int = 10
+    __ 行为 __
+    策略：NullShootStrategy（不射击）
+    不掉落道具
+}
+
+class EliteEnemy <<ConcreteProduct>> {
+    - shootNum: int = 1
+    - score: int = 20
+    __ 行为 __
+    策略：StraightShootStrategy（单排直射）
+    可掉落道具
+}
+
+class ElitePlusEnemy <<ConcreteProduct>> {
+    - shootNum: int = 2
+    - score: int = 25
+    __ 行为 __
+    策略：StraightShootStrategy（双排直射）
+    可掉落道具
+}
+
+class EliteProEnemy <<ConcreteProduct>> {
+    - shootNum: int = 3
+    - score: int = 30
+    __ 行为 __
+    策略：ScatterShootStrategy（散射）
+    可掉落道具
+}
+
+class BossEnemy <<ConcreteProduct>> {
+    - shootNum: int = 20
+    - score: int = 200
+    __ 行为 __
+    策略：RingShootStrategy（环射）
+    掉落 3 件道具
+}
+
+' ==================== 客户端（Client） ====================
+class Game <<Client>> {
+    - mobEnemyFactory: EnemyFactory
+    - eliteEnemyFactory: EnemyFactory
+    - elitePlusEnemyFactory: EnemyFactory
+    - eliteProEnemyFactory: EnemyFactory
+    - bossEnemyFactory: EnemyFactory
+
+    - generateEnemy(): void
+    __ __
+    根据随机数选择不同工厂
+    调用 factory.createEnemy()
+    生成对应敌机
+}
+
+' ==================== 关系 ====================
+' 实现关系：具体工厂实现抽象工厂接口
+EnemyFactory <|.. MobEnemyFactory
+EnemyFactory <|.. EliteEnemyFactory
+EnemyFactory <|.. ElitePlusEnemyFactory
+EnemyFactory <|.. EliteProEnemyFactory
+EnemyFactory <|.. BossEnemyFactory
+
+' 继承关系：具体产品继承抽象产品
+AbstractAircraft <|-- MobEnemy
+AbstractAircraft <|-- EliteEnemy
+AbstractAircraft <|-- ElitePlusEnemy
+AbstractAircraft <|-- EliteProEnemy
+AbstractAircraft <|-- BossEnemy
+
+' 依赖关系：具体工厂创建具体产品
+MobEnemyFactory ..> MobEnemy : <<create>>
+EliteEnemyFactory ..> EliteEnemy : <<create>>
+ElitePlusEnemyFactory ..> ElitePlusEnemy : <<create>>
+EliteProEnemyFactory ..> EliteProEnemy : <<create>>
+BossEnemyFactory ..> BossEnemy : <<create>>
+
+' 客户端依赖抽象工厂
+Game --> EnemyFactory : 持有多个工厂实例
+
+' ==================== 注释 ====================
+note right of EnemyFactory
+    <b>工厂方法模式（Factory Method Pattern）</b>
+    —————————————————————————
+    <b>意图：</b>定义一个创建对象的接口
+    （EnemyFactory），让子类决定实例化
+    哪一个具体产品类，将对象的创建延
+    迟到子类中完成。
+
+    <b>参与者：</b>
+    • Creator = EnemyFactory
+    • ConcreteCreator = MobEnemyFactory
+      / EliteEnemyFactory / ElitePlusEnemyFactory
+      / EliteProEnemyFactory / BossEnemyFactory
+    • Product = AbstractAircraft
+    • ConcreteProduct = MobEnemy / EliteEnemy
+      / ElitePlusEnemy / EliteProEnemy / BossEnemy
+    • Client = Game
+
+    <b>优点：</b>
+    • 新增敌机类型只需添加新工厂，无需修改
+      已有代码（符合开闭原则）
+    • 客户端仅依赖抽象接口，与具体类解耦
+end note
+
+@enduml
