@@ -7,6 +7,7 @@ import edu.hitsz.dao.RecordDao;
 import edu.hitsz.enemy.BossEnemy;
 import edu.hitsz.enemy.MobEnemy;
 import edu.hitsz.factory.*;
+import edu.hitsz.observer.Explosive;
 import edu.hitsz.prop.AbstractProp;
 import edu.hitsz.record.PlayerRecord;
 import edu.hitsz.utils.MusicThread;
@@ -73,6 +74,10 @@ public class Game extends JPanel {
     private final EnemyFactory elitePlusEnemyFactory = new ElitePlusEnemyFactory();
     private final EnemyFactory eliteProEnemyFactory = new EliteProEnemyFactory();
     private final EnemyFactory bossEnemyFactory = new BossEnemyFactory();
+    // 三种特殊敌机工厂
+    private final EnemyFactory shieldEnemyFactory   = new ShieldEnemyFactory();
+    private final EnemyFactory dodgeEnemyFactory    = new DodgeEnemyFactory();
+    private final EnemyFactory kamikazeEnemyFactory = new KamikazeEnemyFactory();
 
     // boss机出现的处理方式
     // 下一次产生 Boss 的分数阈值（比如 500 分出第一个，1000 分出第二个）
@@ -171,14 +176,25 @@ public class Game extends JPanel {
             double rand = Math.random();
             AbstractAircraft newEnemy = null;
 
-            if (rand < 0.25) {
+            // 概率分布（共 100%）：
+            // [0.00, 0.20)  EliteEnemy      20%
+            // [0.20, 0.30)  ShieldEnemy     10%
+            // [0.30, 0.40)  DodgeEnemy      10%
+            // [0.40, 0.50)  KamikazeEnemy   10%
+            // [0.50, 0.80)  EliteProEnemy   30%
+            // [0.80, 1.00)  ElitePlusEnemy  20%
+            if (rand < 0.20) {
                 newEnemy = eliteEnemyFactory.createEnemy();
-            } else if (rand > 0.85) {
-                newEnemy = elitePlusEnemyFactory.createEnemy();
-            } else if (rand <= 0.85 && rand >= 0.35) {
+            } else if (rand < 0.30) {
+                newEnemy = shieldEnemyFactory.createEnemy();
+            } else if (rand < 0.40) {
+                newEnemy = dodgeEnemyFactory.createEnemy();
+            } else if (rand < 0.50) {
+                newEnemy = kamikazeEnemyFactory.createEnemy();
+            } else if (rand < 0.80) {
                 newEnemy = eliteProEnemyFactory.createEnemy();
             } else {
-
+                newEnemy = elitePlusEnemyFactory.createEnemy();
             }
             // 将工厂生产好的敌机加入队列
             if (newEnemy != null) {
@@ -279,11 +295,18 @@ public class Game extends JPanel {
                         }
                         score += enemyAircraft.getScore();
                         props.addAll(enemyAircraft.dropProps());
-
+                        // 自爆机引爆：向外喷射弹幕
+                        if (enemyAircraft instanceof Explosive) {
+                            enemyBullets.addAll(((Explosive) enemyAircraft).explode());
+                        }
                     }
                 }
                 // 英雄机 与 敌机 相撞，均损毁
                 if (enemyAircraft.crash(heroAircraft) || heroAircraft.crash(enemyAircraft)) {
+                    // 撞机时自爆机也要触发爆炸
+                    if (enemyAircraft instanceof Explosive) {
+                        enemyBullets.addAll(((Explosive) enemyAircraft).explode());
+                    }
                     enemyAircraft.vanish();
                     heroAircraft.decreaseHp(Integer.MAX_VALUE);
                 }
