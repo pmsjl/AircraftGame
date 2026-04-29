@@ -80,10 +80,17 @@ public class KamikazeEnemy extends AbstractAircraft implements Explosive {
     }
 
     @Override
+<<<<<<< HEAD
     public int updateOnFreeze() {
         this.speedX = 0;
         this.speedY = 0;
         // 自爆机归普通机类，永久静止直至离场或死亡
         return -1;
+=======
+    public boolean updateOnFreeze() {
+        this.speedX = 0;
+        this.speedY = 0;
+        return true;
+>>>>>>> 1aaca805a7a8a470b7b73812a01b7a44b78a1d49
     }
 }
