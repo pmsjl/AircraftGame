@@ -93,9 +93,10 @@ public class EliteEnemy extends AbstractAircraft {
     }
 
     @Override
-    public boolean updateOnFreeze() {
-        this.speedY=0;
-        this.speedX=0;
-        return true;
+    public int updateOnFreeze() {
+        this.speedY = 0;
+        this.speedX = 0;
+        // 精英敌机静止 4 秒（25 FPS × 4 = 100 帧）后恢复
+        return 100;
     }
 }

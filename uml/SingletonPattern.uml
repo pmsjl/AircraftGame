@@ -1,0 +1,32 @@
+@startuml
+' 单例模式 — 英雄机（Singleton Pattern）
+skinparam classAttributeIconSize 0
+
+class HeroAircraft <<Singleton>> {
+    - {static volatile} instance: HeroAircraft
+    - currentBuffPriority: int = 0
+    - buffVersion: int = 0
+    - HeroAircraft(locationX, locationY, speedX, speedY, hp)
+    __
+    + {static} getInstance(): HeroAircraft
+    + resetForNewGame(): void
+    + applyBuff(priority: int): int
+    + clearBuff(version: int): void
+    + {abstract} shoot(): List<BaseBullet>
+    __ 说明 __
+    双重检查锁（DCL）+ volatile
+    确保多线程下唯一实例
+    Buff 版本号防并发覆盖
+}
+
+note right of HeroAircraft
+    <b>单例模式关键要素：</b>
+    ① 构造函数 private（包外不可 new）
+    ② 静态方法 getInstance() 为全局入口
+    ③ DCL：第一次判空避免不必要加锁，
+       第二次判空确保只 new 一次
+    ④ volatile 禁止指令重排
+    ⑤ resetForNewGame() 替代重建，
+       一轮游戏 = 一次软重置
+end note
+@enduml

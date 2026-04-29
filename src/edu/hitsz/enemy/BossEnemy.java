@@ -99,7 +99,8 @@ public class BossEnemy extends AbstractAircraft {
     }
 
     @Override
-    public boolean updateOnFreeze() {
-        return false;
+    public int updateOnFreeze() {
+        // Boss 完全免疫冰冻
+        return 0;
     }
 }

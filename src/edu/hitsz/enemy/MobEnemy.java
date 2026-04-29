@@ -57,8 +57,9 @@ public class MobEnemy extends AbstractAircraft {
     }
 
     @Override
-    public boolean updateOnFreeze() {
-        this.speedY=0;
-        return false;
+    public int updateOnFreeze() {
+        this.speedY = 0;
+        // 普通敌机永久静止，不参与解冻
+        return -1;
     }
 }

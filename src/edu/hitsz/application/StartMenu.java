@@ -43,8 +43,12 @@ public class StartMenu extends JPanel {
             }
         }
 
-        // 1. 在这里才真正创建 Game 实例，并把难度喂给它！
-        Game game = new Game(difficulty, Main.getRecordDao());
+        // 1. 根据难度实例化对应的 Game 子类（lab6 模板方法）
+        Game game = switch (difficulty) {
+            case EASY -> new EasyGame(Main.getRecordDao());
+            case NORMAL -> new NormalGame(Main.getRecordDao());
+            case HARD -> new HardGame(Main.getRecordDao());
+        };
 
         // 2. 把刚创建好的游戏画面，塞进 Main 的卡片底板里，代号叫 "game"
         Main.cardPanel.add(game, "game");

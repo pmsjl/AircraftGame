@@ -35,6 +35,11 @@ public class ImageManager {
     public static BufferedImage ELITE_PRO_ENEMY_IMAGE;
     public static BufferedImage BOSS_ENEMY_IMAGE;
 
+    // --- 三种特殊敌机图片（科幻风，CC-BY 3.0 by MillionthVector / CC0 by Kenney 等）---
+    public static BufferedImage SHIELD_ENEMY_IMAGE;
+    public static BufferedImage DODGE_ENEMY_IMAGE;
+    public static BufferedImage KAMIKAZE_ENEMY_IMAGE;
+
     // --- 新增的道具图片 ---
     public static BufferedImage PROP_BLOOD_IMAGE;
     public static BufferedImage PROP_BOMB_IMAGE;
@@ -45,7 +50,7 @@ public class ImageManager {
     static {
         try {
             // 基础资源加载
-            BACKGROUND_IMAGE = ImageIO.read(new FileInputStream("src/images/bg5.jpg"));
+            BACKGROUND_IMAGE = ImageIO.read(new FileInputStream("src/images/bg2.jpg"));
             HERO_IMAGE = ImageIO.read(new FileInputStream("src/images/hero.png"));
             MOB_ENEMY_IMAGE = ImageIO.read(new FileInputStream("src/images/mob.png"));
             HERO_BULLET_IMAGE = ImageIO.read(new FileInputStream("src/images/bullet_hero.png"));
@@ -56,6 +61,11 @@ public class ImageManager {
             ELITE_PLUS_ENEMY_IMAGE = ImageIO.read(new FileInputStream("src/images/elitePlus.png"));
             ELITE_PRO_ENEMY_IMAGE = ImageIO.read(new FileInputStream("src/images/elitePro.png"));
             BOSS_ENEMY_IMAGE = ImageIO.read(new FileInputStream("src/images/boss.png"));
+
+            // --- 加载三种特殊敌机图片 ---
+            SHIELD_ENEMY_IMAGE   = ImageIO.read(new FileInputStream("src/images/shieldEnemy.png"));
+            DODGE_ENEMY_IMAGE    = ImageIO.read(new FileInputStream("src/images/dodgeEnemy.png"));
+            KAMIKAZE_ENEMY_IMAGE = ImageIO.read(new FileInputStream("src/images/kamikazeEnemy.png"));
 
             // --- 加载新增道具图片 ---
             PROP_BLOOD_IMAGE = ImageIO.read(new FileInputStream("src/images/prop_blood.png"));
@@ -75,6 +85,11 @@ public class ImageManager {
             CLASSNAME_IMAGE_MAP.put(ElitePlusEnemy.class.getName(), ELITE_PLUS_ENEMY_IMAGE);
             CLASSNAME_IMAGE_MAP.put(EliteProEnemy.class.getName(), ELITE_PRO_ENEMY_IMAGE);
             CLASSNAME_IMAGE_MAP.put(BossEnemy.class.getName(), BOSS_ENEMY_IMAGE);
+
+            // 三种特殊敌机映射
+            CLASSNAME_IMAGE_MAP.put(ShieldEnemy.class.getName(), SHIELD_ENEMY_IMAGE);
+            CLASSNAME_IMAGE_MAP.put(DodgeEnemy.class.getName(), DODGE_ENEMY_IMAGE);
+            CLASSNAME_IMAGE_MAP.put(KamikazeEnemy.class.getName(), KAMIKAZE_ENEMY_IMAGE);
 
             // 道具映射
             CLASSNAME_IMAGE_MAP.put(BloodProp.class.getName(), PROP_BLOOD_IMAGE);

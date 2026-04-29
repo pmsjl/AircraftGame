@@ -1,0 +1,203 @@
+@startuml
+'https://plantuml.com/class-diagram
+title 飞机大战 - 观察者模式（Observer Pattern）\n炸弹与冰冻道具效果分发
+
+skinparam classAttributeIconSize 0
+
+' ==================== 道具触发端 ====================
+class BombProp <<道具>> {
+    + effect(heroAircraft: HeroAircraft): int
+    __ 说明 __
+    接触英雄机后触发炸弹
+    Game.BombUpdate() 通知所有敌机
+    同时清空全部敌机子弹
+}
+
+class FreezeProp <<道具>> {
+    + effect(heroAircraft: HeroAircraft): int
+    __ 说明 __
+    接触英雄机后触发冰冻
+    Game.FreezeUpdate() 通知所有敌机和子弹
+    各对象按自身规则决定冻结时长
+}
+
+' ==================== Subject（被观察者/通知中枢） ====================
+class Game <<Subject>> {
+    - enemyAircrafts: List<AbstractAircraft>
+    - enemyBullets: List<BaseBullet>
+    - enemyFreezeTicks: Map<AbstractAircraft, Integer>
+    - bulletFreezeTicks: Map<BaseBullet, Integer>
+    __
+    - BombUpdate(): void
+    - FreezeUpdate(): void
+    - updatePropAction(): void
+    __ 说明 __
+    BombProp 接触到英雄机后，
+    Game 遍历 enemyAircrafts
+    调用每个敌机的 updateOnBomb()
+    并清空所有敌机子弹。
+
+    FreezeProp 接触到英雄机后，
+    Game 遍历 enemyAircrafts + enemyBullets
+    调用每个对象的 updateOnFreeze()
+    返回值 >0 则存入冻结倒计时 map
+    每帧由 updatePropAction() 递减并解冻。
+}
+
+' ==================== Observer 接口 ====================
+interface BombObserver <<Observer>> {
+    + updateOnBomb(): int
+    __ 返回值语义 __
+    > 0：击毁得分（如普通敌机）
+    0：免疫炸弹（如 Boss / 英雄机）
+    负值：无意义，不使用
+}
+
+interface FreezeObserver <<Observer>> {
+    + updateOnFreeze(): int
+    __ 返回值语义 __
+    > 0：进入冻结，持续 N 帧后由 Game 解冻
+    0：免疫冰冻（Boss / 英雄机 / 英雄子弹）
+    -1：永久冻结（普通敌机），不会自动解冻
+}
+
+' ==================== 抽象观察者实现 ====================
+abstract class AbstractAircraft <<Observer>> {
+    # hp: int
+    # speedX: int
+    # speedY: int
+    # originalSpeedX: int
+    # originalSpeedY: int
+    # score: int
+    __
+    + updateOnBomb(): int
+    + updateOnFreeze(): int
+    + updateOnUnfreeze(): void
+    + decreaseHp(decrease: int): void
+    + vanish(): void
+}
+
+' ==================== 具体观察者（敌机子类） ====================
+class MobEnemy <<弹炸毁 · 冰永久>> {
+    + updateOnBomb(): int → vanish() · 得分 10
+    + updateOnFreeze(): int → -1（永久冻结）
+    + updateOnUnfreeze(): void → （不调用）
+}
+
+class EliteEnemy <<弹炸毁 · 冰 4s>> {
+    + updateOnBomb(): int → vanish() · 得分 20
+    + updateOnFreeze(): int → 100（4 秒）
+    + updateOnUnfreeze(): void → 恢复 originalSpeed
+}
+
+class ElitePlusEnemy <<弹炸毁 · 冰 3s>> {
+    + updateOnBomb(): int → vanish() · 得分 25
+    + updateOnFreeze(): int → 75（3 秒）
+    + updateOnUnfreeze(): void → 恢复 originalSpeed
+}
+
+class EliteProEnemy <<弹扣 35HP · 冰减速 5s>> {
+    - bombInvincible: boolean
+    __
+    + updateOnBomb(): int
+        → hp = max(1, hp - 35) 钳制不死
+        → bombInvincible = true 后续炸弹免疫
+        → 返回 0 不计分
+    + updateOnFreeze(): int
+        → 125（5 秒，速度降至 50%）
+    + updateOnUnfreeze(): void → 恢复全速
+}
+
+class BossEnemy <<弹免疫 · 冰免疫>> {
+    + updateOnBomb(): int → 0（免疫）
+    + updateOnFreeze(): int → 0（免疫）
+    + updateOnUnfreeze(): void → （不调用）
+}
+
+class KamikazeEnemy <<弹炸毁 · 冰永久>> {
+    + updateOnBomb(): int → vanish() + 自爆弹幕
+    + updateOnFreeze(): int → -1（永久冻结）
+}
+
+class DodgeEnemy <<弹炸毁 · 冰永久>> {
+    + updateOnBomb(): int → vanish()
+    + updateOnFreeze(): int → -1（永久冻结）
+}
+
+class ShieldEnemy <<弹炸毁 · 冰永久>> {
+    + updateOnBomb(): int → vanish()
+    + updateOnFreeze(): int → -1（永久冻结）
+}
+
+' ==================== 子弹观察者实现 ====================
+abstract class BaseBullet <<Observer>> {
+    # frozenSpeedX: int
+    # frozenSpeedY: int
+    __
+    + updateOnFreeze(): int → 0（默认免疫）
+    + updateOnUnfreeze(): void → 恢复暂存速度
+}
+
+class EnemyBullet <<冰 5s>> {
+    + updateOnFreeze(): int
+        → 暂存 speedX/speedY 至 frozen*
+        → 速度置零
+        → 返回 125（5 秒）
+}
+
+class HeroBullet <<冰免疫>> {
+    + updateOnFreeze(): int → 0（不参与冰冻）
+}
+
+' ==================== 关系 ====================
+' 道具接触英雄机后触发 Game 通知
+BombProp ..> Game : <<trigger>> BombUpdate()
+FreezeProp ..> Game : <<trigger>> FreezeUpdate()
+
+' Subject 持有观察者列表并主动遍历调用
+Game --> AbstractAircraft : 遍历 enemyAircrafts\n逐个调用 updateOnBomb() / updateOnFreeze()
+Game --> BaseBullet : 遍历 enemyBullets\n逐个调用 updateOnFreeze()
+
+' 接口实现
+BombObserver <|.. AbstractAircraft
+FreezeObserver <|.. AbstractAircraft
+FreezeObserver <|.. BaseBullet
+
+' 继承关系
+AbstractAircraft <|-- MobEnemy
+AbstractAircraft <|-- EliteEnemy
+AbstractAircraft <|-- ElitePlusEnemy
+AbstractAircraft <|-- EliteProEnemy
+AbstractAircraft <|-- BossEnemy
+AbstractAircraft <|-- KamikazeEnemy
+AbstractAircraft <|-- DodgeEnemy
+AbstractAircraft <|-- ShieldEnemy
+
+BaseBullet <|-- EnemyBullet
+BaseBullet <|-- HeroBullet
+
+' Game 管理冻结计时
+Game *--> "enemyFreezeTicks" AbstractAircraft : IdentityHashMap\n按对象计时递减
+Game *--> "bulletFreezeTicks" BaseBullet : IdentityHashMap\n按对象计时递减
+
+' ==================== 模式注释 ====================
+note right of Game
+    <b>观察者模式（Observer Pattern）</b>
+    ——————————————————
+    <b>意图：</b>定义对象间一对多依赖关系，
+    当一个对象（道具）状态改变时，
+    所有依赖对象（敌机 / 子弹）自动收到通知。
+
+    <b>参与者：</b>
+    • Subject = Game（通知中枢）
+    • Observer = BombObserver / FreezeObserver
+    • ConcreteObserver = 各敌机子类 + EnemyBullet
+
+    <b>特点：</b>
+    ① 道具类不感知具体敌机类型
+    ② 新增敌机只需实现 Observer 接口
+    ③ 各敌机对同一道具差异化响应
+    ④ 冻结计时以 IdentityHashMap 按对象管理
+end note
+
+@enduml

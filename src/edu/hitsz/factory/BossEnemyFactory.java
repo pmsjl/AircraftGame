@@ -14,7 +14,7 @@ public class BossEnemyFactory implements EnemyFactory{
                 (int) (Math.random() * Main.WINDOW_HEIGHT * 0.05),
                 10,
                 0, // speedY
-                50000
+                5000
         );
     }
 }

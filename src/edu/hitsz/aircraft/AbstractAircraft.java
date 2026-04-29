@@ -76,6 +76,22 @@ public abstract class AbstractAircraft extends AbstractFlyingObject implements B
         }
     }
 
+    /**
+     * 难度递进/Boss 加成用：按倍率放大血量（同时抬高 maxHp 上限）
+     */
+    public void scaleHp(double factor) {
+        this.hp = Math.max(1, (int) Math.round(this.hp * factor));
+        this.maxHp = Math.max(this.maxHp, this.hp);
+    }
+
+    /**
+     * 难度递进用：按倍率放大纵向速度，同步更新 originalSpeedY 以便冻结后正确恢复
+     */
+    public void scaleSpeedY(double factor) {
+        this.speedY = (int) Math.round(this.speedY * factor);
+        this.originalSpeedY = this.speedY;
+    }
+
     //子弹策略英雄和
     public abstract BaseBullet createBullet(int x, int y, int speedX, int speedY, int power);
 
