@@ -1,0 +1,167 @@
+@startuml
+'https://plantuml.com/class-diagram
+title 飞机大战 - 模板方法模式（Template Method Pattern）\n多难度游戏主循环
+
+skinparam classAttributeIconSize 0
+
+' ==================== 抽象模板类 ====================
+abstract class Game <<AbstractClass>> {
+    # enemySpawnCycle: double
+    # enemyShootCycle: double
+    # heroShootCycle: double
+    # enemyHpMultiplier: double
+    # enemySpeedMultiplier: double
+    - progressCounter: int
+    - progressLevel: int
+    - score: int
+    __ 模板方法（final 锁定步骤） __
+    + {final} action(): void
+    __ 基本方法（私有实现） __
+    - generateEnemy(): void
+    - shootAction(): void
+    - bulletsMoveAction(): void
+    - aircraftsMoveAction(): void
+    - propsMoveAction(): void
+    - crashCheckAction(): void
+    - updatePropAction(): void
+    - progressTickAction(): void
+    - postProcessAction(): void
+    - repaint(): void
+    - checkResultAction(): void
+    __ 钩子方法（protected，子类覆盖） __
+    + shouldSpawnBoss(): boolean
+    + onBossSpawn(boss: BossEnemy): void
+    + onProgressTick(): void
+    + progressIntervalTicks(): int
+    + getProgressLevel(): int
+}
+
+' ==================== 具体模板子类 ====================
+class EasyGame <<ConcreteClass>> {
+    __ 覆盖的钩子 __
+    + shouldSpawnBoss(): boolean
+        → return false（永不出 Boss）
+    + progressIntervalTicks(): int
+        → return 0（禁用难度递进）
+    __ 不覆盖的钩子（沿用默认） __
+    onBossSpawn() / onProgressTick() 不调用
+    __ 效果 __
+    敌机参数全程保持初始值
+    无 Boss 无递进，适合新手
+}
+
+class NormalGame <<ConcreteClass>> {
+    - SPAWN_DECAY: double = 0.92
+    - SPEED_GROWTH: double = 1.10
+    - HP_GROWTH: double = 1.15
+    __ 覆盖的钩子 __
+    + onProgressTick(): void
+        → enemySpawnCycle *= 0.92
+        → enemySpeedMultiplier *= 1.10
+        → enemyHpMultiplier *= 1.15
+        → 控制台输出递进信息
+    __ 不覆盖的钩子（沿用默认） __
+    shouldSpawnBoss() → 阈值判定（≥500 分）
+    onBossSpawn() → 空
+    progressIntervalTicks() → 750（30s）
+    __ 效果 __
+    Boss 正常出现，HP 不变
+    每 30 秒敌机变强
+}
+
+class HardGame <<ConcreteClass>> {
+    - SPAWN_DECAY: double = 0.92
+    - SPEED_GROWTH: double = 1.10
+    - HP_GROWTH: double = 1.15
+    - BOSS_HP_GROWTH: double = 1.30
+    - HERO_SHOOT_DECAY: double = 1/1.05
+    - ENEMY_SHOOT_DECAY: double = 0.92
+    - bossSpawnCount: int
+    __ 覆盖的钩子 __
+    + onProgressTick(): void
+        → enemySpawnCycle *= 0.92
+        → enemySpeedMultiplier *= 1.10
+        → enemyHpMultiplier *= 1.15
+        → heroShootCycle *= 0.95（射得更快）
+        → enemyShootCycle *= 0.92（敌机更凶）
+    + onBossSpawn(boss: BossEnemy): void
+        → bossSpawnCount++
+        → boss.scaleHp(1.30 ^ bossSpawnCount)
+    __ 效果 __
+    Boss HP 每次累乘 1.30
+    敌我双方射速均加速递进
+}
+
+' ==================== 辅助类 ====================
+class BossEnemy <<Entity>> {
+    + scaleHp(factor: double): void
+}
+
+enum Difficulty <<ValueObject>> {
+    EASY
+    NORMAL
+    HARD
+    __
+    + getScoreMultiplier(): double
+    + getDisplayName(): String
+}
+
+' ==================== 关系 ====================
+' 模板方法：抽象类 → 具体子类
+Game <|-- EasyGame
+Game <|-- NormalGame
+Game <|-- HardGame
+
+' HardGame 依赖 BossEnemy 累乘 HP
+HardGame ..> BossEnemy : <<scaleHp>>
+
+' Game 构造时使用 Difficulty 决定初始周期
+Game --> Difficulty
+
+' ==================== 模板方法时序注释 ====================
+note right of Game
+    <b>模板方法模式（Template Method Pattern）</b>
+    ——————————————————
+    <b>意图：</b>在一个方法中定义算法的骨架，
+    将某些步骤延迟到子类实现。
+    子类可重写特定步骤而不改变整体结构。
+
+    <b>action() 主循环步骤（final 锁定）：</b>
+    ① 敌机生成（generateEnemy）
+    ② 飞机射击（shootAction）
+    ③ 子弹移动（bulletsMoveAction）
+    ④ 飞机移动（aircraftsMoveAction）
+    ⑤ 道具移动（propsMoveAction）
+    ⑥ 碰撞检测（crashCheckAction）
+       └ 其中 Boss 生成调 shouldSpawnBoss / onBossSpawn
+    ⑦ 道具时效（updatePropAction）
+    ⑧ 难度递进（progressTickAction）
+       └ 其中调 onProgressTick
+    ⑨ 后处理（postProcessAction）
+    ⑩ 重绘 + 游戏结束检查
+
+    <b>钩子方法（Hook）：</b>
+    • shouldSpawnBoss() → 控制 Boss 是否出现
+    • onBossSpawn() → Boss 出场加成
+    • onProgressTick() → 难度递进
+    • progressIntervalTicks() → 递进频率
+
+    <b>参与者：</b>
+    • AbstractClass = Game
+    • ConcreteClass = EasyGame / NormalGame / HardGame
+end note
+
+note bottom of Game
+    <b>难度与初始参数：</b>
+    EASY：multiplier = 1.0
+      spawnCycle = 12 / 1.0 = 12
+      shootCycle = 18 / 1.0 = 18
+    NORMAL：multiplier = 1.5
+      spawnCycle = 12 / 1.5 = 8
+      shootCycle = 18 / 1.5 = 12
+    HARD：multiplier = 2.0
+      spawnCycle = 12 / 2.0 = 6
+      shootCycle = 18 / 2.0 = 9
+end note
+
+@enduml

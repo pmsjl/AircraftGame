@@ -18,6 +18,10 @@ import java.util.List;
 
 
 public class EliteProEnemy extends AbstractAircraft {
+
+    // 王牌机被炸弹波及一次后，对后续炸弹完全免疫（仅炸弹路径无敌；子弹仍可击杀）
+    private boolean bombInvincible = false;
+
     public EliteProEnemy(int locationX, int locationY, int speedX, int speedY, int hp) {
         super(locationX, locationY, speedX, speedY, hp);
         this.score = 30;
@@ -25,6 +29,8 @@ public class EliteProEnemy extends AbstractAircraft {
         this.power = 25;
         this.direction = 2;
         this.shootStrategy = new ScatterShootStrategy();
+        this.originalSpeedX = speedX;
+        this.originalSpeedY = speedY;
     }
 
     @Override
@@ -47,7 +53,7 @@ public class EliteProEnemy extends AbstractAircraft {
         List<AbstractProp> res = new LinkedList<>();
         double num = Math.random();
         AbstractProp prop = null;
-        String propName="";
+        String propName = "";
         if (num < 0.1) {
             prop = PropFactory.createProp("Blood", this.getLocationX(), this.getLocationY());
             propName = "加血道具";
@@ -82,7 +88,8 @@ public class EliteProEnemy extends AbstractAircraft {
 
     @Override
     public void updateOnUnfreeze() {
-
+        this.speedX = this.originalSpeedX;
+        this.speedY = this.originalSpeedY;
     }
 
     @Override
@@ -92,19 +99,22 @@ public class EliteProEnemy extends AbstractAircraft {
 
     @Override
     public int updateOnBomb() {
-        this.decreaseHp(35);
-        if (!this.isValid) {
-            return this.score;
+        // 血量扣为1之后任何炸弹完全免疫（避免连续炸弹必杀）；子弹路径不受影响。
+        if (bombInvincible) {
+            return 0;
+        }
+        this.hp = Math.max(1, this.hp - 35);
+        if (this.hp == 1) {
+            bombInvincible = true;
         }
         return 0;
-
     }
 
     @Override
-    public boolean updateOnFreeze() {
-        this.speedY =(int)(speedY*0.5);
-        this.speedX =(int)(speedX*0.5);
-
-        return false;
+    public int updateOnFreeze() {
+        // 王牌机减速至 50%，5 秒（25 FPS × 5 = 125 帧）后恢复
+        this.speedY = (int) (this.originalSpeedY * 0.5);
+        this.speedX = (int) (this.originalSpeedX * 0.5);
+        return 125;
     }
 }

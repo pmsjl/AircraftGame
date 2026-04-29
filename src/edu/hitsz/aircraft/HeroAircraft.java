@@ -97,8 +97,9 @@ public class HeroAircraft extends AbstractAircraft {
     }
 
     @Override
-    public boolean updateOnFreeze() {
-        return false;
+    public int updateOnFreeze() {
+        // 英雄机不参与冰冻
+        return 0;
     }
 
     /**
