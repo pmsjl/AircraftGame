@@ -17,8 +17,8 @@ import java.util.List;
  */
 public class DodgeEnemy extends AbstractAircraft {
 
-    private static final int DODGE_DURATION = 5;   // 闪避帧数
-    private static final int DODGE_SPEED    = 15;   // 闪避横向速度
+    private static final int DODGE_DURATION = 5; // 闪避帧数
+    private static final int DODGE_SPEED = 15; // 闪避横向速度
 
     private int dodgeFrames = 0;
 
@@ -103,6 +103,7 @@ public class DodgeEnemy extends AbstractAircraft {
     }
 
     @Override
+
     public int updateOnFreeze() {
         this.speedX = 0;
         this.speedY = 0;

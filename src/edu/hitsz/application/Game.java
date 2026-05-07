@@ -23,12 +23,13 @@ import java.util.Objects;
 /**
  * 游戏主面板（模板方法的骨架类）。
  *
- * <p>本类是 lab6 模板方法重构后的抽象基类：{@link #action()} 是 final 模板方法，
+ * <p>
+ * 本类是 lab6 模板方法重构后的抽象基类：{@link #action()} 是 final 模板方法，
  * 锁定主循环步骤；不同难度通过覆盖 protected hook 决定细节：
  * <ul>
- *   <li>{@link #shouldSpawnBoss()}：是否触发 Boss（简单难度恒 false）</li>
- *   <li>{@link #onBossSpawn(BossEnemy)}：Boss 出场加成（困难按次累乘 hp）</li>
- *   <li>{@link #onProgressTick()}：难度递进周期到达时的处理</li>
+ * <li>{@link #shouldSpawnBoss()}：是否触发 Boss（简单难度恒 false）</li>
+ * <li>{@link #onBossSpawn(BossEnemy)}：Boss 出场加成（困难按次累乘 hp）</li>
+ * <li>{@link #onProgressTick()}：难度递进周期到达时的处理</li>
  * </ul>
  *
  * @author hitsz
@@ -88,8 +89,8 @@ public abstract class Game extends JPanel {
     private final EnemyFactory eliteProEnemyFactory = new EliteProEnemyFactory();
     private final EnemyFactory bossEnemyFactory = new BossEnemyFactory();
     // 三种特殊敌机工厂
-    private final EnemyFactory shieldEnemyFactory   = new ShieldEnemyFactory();
-    private final EnemyFactory dodgeEnemyFactory    = new DodgeEnemyFactory();
+    private final EnemyFactory shieldEnemyFactory = new ShieldEnemyFactory();
+    private final EnemyFactory dodgeEnemyFactory = new DodgeEnemyFactory();
     private final EnemyFactory kamikazeEnemyFactory = new KamikazeEnemyFactory();
 
     // boss机出现的处理方式
@@ -127,7 +128,8 @@ public abstract class Game extends JPanel {
 
     /**
      * 游戏启动入口（模板方法）。
-     * <p>主循环步骤被 final 锁定；难度差异通过 protected hook 表达。
+     * <p>
+     * 主循环步骤被 final 锁定；难度差异通过 protected hook 表达。
      */
     public final void action() {
 
@@ -220,12 +222,12 @@ public abstract class Game extends JPanel {
             AbstractAircraft newEnemy = null;
 
             // 概率分布（共 100%）：
-            // [0.00, 0.20)  EliteEnemy      20%
-            // [0.20, 0.30)  ShieldEnemy     10%
-            // [0.30, 0.40)  DodgeEnemy      10%
-            // [0.40, 0.50)  KamikazeEnemy   10%
-            // [0.50, 0.80)  EliteProEnemy   30%
-            // [0.80, 1.00)  ElitePlusEnemy  20%
+            // [0.00, 0.20) EliteEnemy 20%
+            // [0.20, 0.30) ShieldEnemy 10%
+            // [0.30, 0.40) DodgeEnemy 10%
+            // [0.40, 0.50) KamikazeEnemy 10%
+            // [0.50, 0.80) EliteProEnemy 30%
+            // [0.80, 1.00) ElitePlusEnemy 20%
             if (rand < 0.20) {
                 newEnemy = eliteEnemyFactory.createEnemy();
             } else if (rand < 0.30) {

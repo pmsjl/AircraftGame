@@ -80,6 +80,7 @@ public class KamikazeEnemy extends AbstractAircraft implements Explosive {
     }
 
     @Override
+
     public int updateOnFreeze() {
         this.speedX = 0;
         this.speedY = 0;

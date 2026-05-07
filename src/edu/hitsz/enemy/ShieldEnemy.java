@@ -164,6 +164,7 @@ public class ShieldEnemy extends AbstractAircraft {
     }
 
     @Override
+
     public int updateOnFreeze() {
         this.speedX = 0;
         this.speedY = 0;
