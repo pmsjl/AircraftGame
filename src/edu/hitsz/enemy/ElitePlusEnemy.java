@@ -97,9 +97,10 @@ public class ElitePlusEnemy extends AbstractAircraft implements BombObserver {
     }
 
     @Override
-    public boolean updateOnFreeze() {
+    public int updateOnFreeze() {
         this.speedY = 0;
         this.speedX = 0;
-        return true;
+        // 精锐敌机静止 3 秒（25 FPS × 3 = 75 帧）后恢复
+        return 75;
     }
 }
