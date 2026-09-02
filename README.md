@@ -1,12 +1,31 @@
 # 飞机大战 (Aircraft War)
 
+![Java 17](https://img.shields.io/badge/Java-17-007396?logo=openjdk&logoColor=white)
+[![License: MIT](https://img.shields.io/github/license/pmsjl/AircraftGame)](LICENSE)
+[![CI](https://github.com/pmsjl/AircraftGame/actions/workflows/ci.yml/badge.svg)](https://github.com/pmsjl/AircraftGame/actions/workflows/ci.yml)
+
 基于 Java Swing 的纵向卷轴射击游戏，哈尔滨工业大学（深圳）软件构造课程（Java / OOP）综合实验项目。
 
 ## 快速开始
 
-- **IDE**：IntelliJ IDEA — 打开项目根目录，运行 `src/edu/hitsz/application/Main.java`
 - **JDK**：17+
-- **依赖**：`lib/commons-lang3-3.8.1.jar`（需手动添加至 classpath；`.jar` 文件在 `.gitignore` 中被忽略，可从 Maven Central 下载）
+- **IDE**：IntelliJ IDEA — 打开项目根目录，运行 `src/edu/hitsz/application/Main.java`
+- **依赖**：无第三方库 —— 纯 Java / Swing 工程，无需 Maven、Gradle 或外部 JAR
+
+> 图片与音频按 `src/images`、`src/videos` 的相对路径读取，**请以项目根目录为工作目录**运行。
+
+### 命令行运行（可选）
+
+```bash
+# 编译（src 与 test 一并编译到 build/）
+javac -encoding UTF-8 -d build $(find src test -name '*.java')
+
+# 启动游戏
+java -cp build edu.hitsz.application.Main
+
+# 运行自测
+java -cp build edu.hitsz.aircraft.HeroAircraftTest
+```
 
 ## 游戏简介
 
@@ -86,9 +105,10 @@ AircraftWar/
 │   │   └── utils/           # 音频播放线程
 │   ├── images/              # 游戏贴图（PNG/JPG）
 │   └── videos/              # 音效 / BGM 文件（WAV）
-├── test/                    # 单元测试
-├── lib/                     # 外部 JAR 依赖
-└── uml/                     # PlantUML 设计图（10 张）
+├── test/                    # 自测用例（无 JUnit，自定义 main() 断言）
+├── lib/                     # （预留，当前无外部依赖）
+├── uml/                     # PlantUML 设计图（10 张）
+└── .github/workflows/ci.yml # GitHub Actions：自动编译 + 运行测试
 ```
 
 ## UML 图
@@ -108,4 +128,13 @@ AircraftWar/
 
 ## 测试
 
-`test/edu/hitsz/aircraft/HeroAircraftTest.java` — JUnit 测试，覆盖英雄机射击、Buff 版本控制、HP 操作等。
+`test/edu/hitsz/aircraft/HeroAircraftTest.java` — 轻量级自测用例。工程未引入 JUnit，采用自定义断言与 `main()` 入口（运行方式见「快速开始 · 命令行运行」），覆盖英雄机射击、Buff 版本控制、HP 操作等。每次 push / PR 由 GitHub Actions 自动编译并执行。
+
+## 致谢
+
+- 哈尔滨工业大学（深圳）《软件构造》课程：提供游戏基础框架与课程素材，本项目仅供教学与学习参考。
+- 新增敌机（护盾 / 闪避 / 神风）贴图参考 [MillionthVector](http://millionthvector.blogspot.de) 的素材重绘，遵循 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。
+
+## 许可
+
+[MIT](LICENSE) © 2026 pmsjl

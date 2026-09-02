@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Compile (src + test)
+        run: |
+          find src test -name '*.java' > sources.txt
+          javac -encoding UTF-8 -d build @sources.txt
+
+      # 自测为自定义 main() 断言（无 JUnit），需以项目根目录为工作目录运行，
+      # 以便 ImageManager 按相对路径 "src/images/..." 加载贴图。
+      - name: Run tests
+        run: java -cp build edu.hitsz.aircraft.HeroAircraftTest
