@@ -352,15 +352,22 @@ public abstract class Game extends JPanel {
                         }
                     }
                 }
-                // 英雄机 与 敌机 相撞，均损毁
-                if (enemyAircraft.crash(heroAircraft) || heroAircraft.crash(enemyAircraft)) {
-                    // 撞机时自爆机也要触发爆炸
-                    if (enemyAircraft instanceof Explosive) {
-                        enemyBullets.addAll(((Explosive) enemyAircraft).explode());
-                    }
-                    enemyAircraft.vanish();
-                    heroAircraft.decreaseHp(Integer.MAX_VALUE);
+            }
+        }
+
+        // 英雄机与敌机的碰撞独立于英雄子弹进行检测，避免无子弹时漏判、
+        // 多颗子弹时重复判定，也避免已被子弹击毁的敌机继续参与撞机。
+        for (AbstractAircraft enemyAircraft : enemyAircrafts) {
+            if (enemyAircraft.notValid()) {
+                continue;
+            }
+            if (enemyAircraft.crash(heroAircraft) || heroAircraft.crash(enemyAircraft)) {
+                // 撞机时自爆机也要触发爆炸
+                if (enemyAircraft instanceof Explosive) {
+                    enemyBullets.addAll(((Explosive) enemyAircraft).explode());
                 }
+                enemyAircraft.vanish();
+                heroAircraft.decreaseHp(Integer.MAX_VALUE);
             }
         }
 
@@ -421,16 +428,22 @@ public abstract class Game extends JPanel {
     private void BombUpdate() {
         bombDroppedProps.clear();
         new MusicThread("src/videos/bomb_explosion.wav", false).start();
+        List<BaseBullet> explosionBullets = new ArrayList<>();
         for (AbstractAircraft enemyAircraft : enemyAircrafts) {
             int addScore = enemyAircraft.updateOnBomb();
             if (addScore > 0) {
                 bombDroppedProps.addAll(enemyAircraft.dropProps());
+                // 炸弹击毁自爆机时仍应触发其死亡弹幕。
+                if (enemyAircraft instanceof Explosive) {
+                    explosionBullets.addAll(((Explosive) enemyAircraft).explode());
+                }
             }
             score += addScore;
         }
-        // lab6 要求：炸弹同时清空所有敌机子弹
+        // 炸弹清空爆炸前已有的敌机子弹；本次击毁自爆机产生的新弹幕随后加入。
         enemyBullets.clear();
         bulletFreezeTicks.clear();
+        enemyBullets.addAll(explosionBullets);
 
     }
 
