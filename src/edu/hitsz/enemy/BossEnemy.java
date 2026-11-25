@@ -71,8 +71,8 @@ public class BossEnemy extends AbstractAircraft {
             } else {
                 prop = PropFactory.createProp("Freeze", this.getLocationX(), this.getLocationY());
                 propName = "冰冻道具";
-
             }
+
             // 如果真的掉落了东西，把它装进列表里返回
             if (prop != null) {
                 res.add(prop);
